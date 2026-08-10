@@ -1,0 +1,43 @@
+import type { Project } from "@/types";
+
+export const gardenCityProject: Project = {
+  id: "proj-gcn",
+  name: "Garden City Naugaon",
+  tagline: "Premium Residential Township",
+  description:
+    "A premium 11-acre residential township in the heart of Naugaon, designed for modern living with green spaces, wide roads, and world-class amenities.",
+  heroImage: "/sales-office-hero.png",
+  townshipSizeAcres: 11,
+  totalPlots: 101,
+  location: "Naugaon, District Nuh, Haryana - 122105",
+  launchDate: "2025-01-15",
+  legalStatus: "RERA Approved",
+  reraNumber: "RAJ/2024/1234",
+  salesManager: { name: "Rajesh Sharma", phone: "+91 98765 43210" },
+  developmentPhase: "Infrastructure Development",
+  developmentStatus: "In Progress",
+  amenities: [
+    "Grand Entrance Gate",
+    "Wide Internal Roads",
+    "Temple & Meditation Zone",
+    "Street Lighting",
+    "Children's Play Area",
+    "24/7 Security",
+    "Clubhouse & Lounge",
+    "Underground Utilities",
+    "Landscaped Gardens",
+    "Water Supply",
+  ],
+  locationAdvantages: [
+    "5 mins to Naugaon Railway Station",
+    "10 mins to Main Market Area",
+    "15 mins to Naugaon City Center",
+    "Easy access to National Highway",
+    "Surrounded by schools & hospitals",
+  ],
+  plotCategories: [
+    { label: "170 - 200 sq yd", count: 36, percent: 35.64 },
+    { label: "200 - 250 sq yd", count: 41, percent: 40.59 },
+    { label: "300 - 500 sq yd", count: 24, percent: 23.76 },
+  ],
+};

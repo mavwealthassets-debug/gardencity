@@ -65,15 +65,17 @@ export default function BuyerDashboardPage() {
         </Card>
 
         <Card className="flex min-h-[330px] flex-col">
-          <CardHeader className="pb-2"><CardTitle>Payment Summary</CardTitle></CardHeader>
-          <CardContent className="flex flex-1 flex-col items-center gap-2">
-            <PaymentGauge percent={paidPercent} size={132} />
-            <div className="w-full text-sm">
+          <CardHeader className="pb-0"><CardTitle>Payment Summary</CardTitle></CardHeader>
+          <CardContent className="flex flex-1 flex-col items-center pt-1">
+            <div className="flex min-h-[126px] w-full items-center justify-center">
+              <PaymentGauge percent={paidPercent} size={144} />
+            </div>
+            <div className="w-full text-sm sm:px-1">
               <Row label="Total Price" value={formatINR(plot.finalPrice)} />
               <Row label="Paid Amount" value={formatINR(plot.paidAmount ?? 0)} valueClassName="text-status-available" />
               <Row label="Balance" value={formatINR(plot.balanceAmount ?? 0)} valueClassName="text-status-sold" />
             </div>
-            <Button variant="secondary" size="sm" className="mt-auto w-fit" onClick={() => navigate("/buyer/payments")}>View Payment Schedule</Button>
+            <Button variant="secondary" size="sm" className="mt-auto self-center" onClick={() => navigate("/buyer/payments")}>View Payment Schedule</Button>
           </CardContent>
         </Card>
 

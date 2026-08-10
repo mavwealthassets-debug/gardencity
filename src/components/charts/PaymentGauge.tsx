@@ -14,8 +14,8 @@ export function PaymentGauge({ percent, size = 180 }: PaymentGaugeProps) {
   ];
 
   return (
-    <div className="relative shrink-0" style={{ width: size, height: size * 0.72 }}>
-      <div className="absolute inset-x-0 top-0" style={{ height: size * 0.62 }}>
+    <div className="relative shrink-0" style={{ width: size, height: size * 0.78 }}>
+      <div className="absolute inset-x-0 top-0" style={{ height: size * 0.64 }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -35,9 +35,9 @@ export function PaymentGauge({ percent, size = 180 }: PaymentGaugeProps) {
           </PieChart>
         </ResponsiveContainer>
       </div>
-      <div className="pointer-events-none absolute inset-x-0 flex flex-col items-center leading-none" style={{ top: size * 0.36 }}>
-        <span className="text-xl font-bold text-neutral-900">{clamped.toFixed(0)}%</span>
-        <span className="mt-1.5 text-xs leading-none text-neutral-500">Paid</span>
+      <div className="pointer-events-none absolute inset-x-0 flex flex-col items-center text-center" style={{ top: size * 0.45 }}>
+        <span className="text-xl font-bold leading-none text-neutral-900">{clamped.toFixed(0)}%</span>
+        <span className="mt-2 text-xs leading-none text-neutral-500">Paid</span>
       </div>
     </div>
   );

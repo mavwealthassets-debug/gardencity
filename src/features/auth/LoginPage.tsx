@@ -46,9 +46,9 @@ export function LoginPage() {
 
       <section className="relative hidden min-h-dvh overflow-hidden bg-brand-950 lg:block">
         <img
-          src="/sales-office-hero.png"
-          alt="Garden City Naugaon entrance"
-          className="absolute inset-0 h-full w-full object-cover opacity-55"
+          src="/login-township-hero.jpg"
+          alt="Garden City Naugaon landscaped township"
+          className="absolute inset-0 h-full w-full object-cover object-center opacity-70"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-brand-950 via-brand-950/45 to-brand-900/20" />
         <div className="absolute inset-x-0 bottom-0 p-12 text-white xl:p-16">

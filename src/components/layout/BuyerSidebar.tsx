@@ -1,13 +1,10 @@
 import { NavLink } from "react-router-dom";
-import { ArrowLeftRight, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Logo } from "@/components/common/Logo";
 import { buyerNavItems } from "@/routes/nav-config";
-import { useDemoRoleSwitch } from "@/hooks/useDemoRoleSwitch";
 import { cn } from "@/lib/utils";
 
 export function BuyerSidebar({ onNavigate, onLogout }: { onNavigate?: () => void; onLogout: () => void }) {
-  const demoSwitch = useDemoRoleSwitch();
-
   return (
     <div className="flex h-full flex-col bg-surface">
       <div className="flex h-[72px] shrink-0 items-center border-b border-border px-4">
@@ -38,16 +35,6 @@ export function BuyerSidebar({ onNavigate, onLogout }: { onNavigate?: () => void
       </nav>
 
       <div className="shrink-0 border-t border-border p-3">
-        {demoSwitch && (
-          <button
-            type="button"
-            onClick={demoSwitch.switchRole}
-            className="mb-2 flex w-full items-center justify-center gap-2 rounded-[10px] bg-neutral-900 px-3 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800"
-          >
-            <ArrowLeftRight size={14} className="shrink-0" />
-            <span className="truncate">Switch to {demoSwitch.label}</span>
-          </button>
-        )}
         <button
           type="button"
           onClick={onLogout}

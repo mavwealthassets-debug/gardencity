@@ -1,9 +1,8 @@
 import { NavLink } from "react-router-dom";
-import { ArrowLeftRight, Home, PlusCircle, TreePine } from "lucide-react";
+import { Home, PlusCircle, TreePine } from "lucide-react";
 import { Logo } from "@/components/common/Logo";
 import { adminNavItems } from "@/routes/nav-config";
 import { useToast } from "@/app/toast";
-import { useDemoRoleSwitch } from "@/hooks/useDemoRoleSwitch";
 import { cn } from "@/lib/utils";
 
 interface AdminSidebarProps {
@@ -13,7 +12,6 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ collapsed = false, onNavigate }: AdminSidebarProps) {
   const { toast } = useToast();
-  const demoSwitch = useDemoRoleSwitch();
 
   return (
     <div className="flex h-full flex-col bg-surface">
@@ -68,22 +66,6 @@ export function AdminSidebar({ collapsed = false, onNavigate }: AdminSidebarProp
         </div>
       )}
 
-      {demoSwitch && (
-        <div className={cn("shrink-0 border-t border-border p-3", collapsed && "px-2")}>
-          <button
-            type="button"
-            onClick={demoSwitch.switchRole}
-            title={collapsed ? `Switch to ${demoSwitch.label}` : undefined}
-            className={cn(
-              "flex w-full items-center justify-center gap-2 rounded-[10px] bg-neutral-900 px-3 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800",
-              collapsed && "px-0"
-            )}
-          >
-            <ArrowLeftRight size={14} className="shrink-0" />
-            {!collapsed && <span className="truncate">Switch to {demoSwitch.label}</span>}
-          </button>
-        </div>
-      )}
     </div>
   );
 }

@@ -4,10 +4,8 @@ import { Button } from "@/components/common/Button";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { RmContactBand } from "@/components/layout/RmContactBand";
 import { useCurrentBuyer } from "./useCurrentBuyer";
-import { useAppData } from "@/app/store";
 import { useToast } from "@/app/toast";
 import { formatDate, formatINR } from "@/lib/format";
-import { cn } from "@/lib/utils";
 
 const LOCATION_ADVANTAGES = [
   { icon: TreePine, title: "Near Park", desc: "Located close to landscaped parks and green spaces." },
@@ -26,10 +24,7 @@ const AMENITIES_NEARBY = [
 
 export default function MyPlotPage() {
   const { buyer, plot } = useCurrentBuyer();
-  const { plots } = useAppData();
   const { toast } = useToast();
-
-  const blockPlots = plots.filter((p) => p.block === plot.block).slice(0, 21);
 
   return (
     <div className="flex flex-col gap-5">
@@ -40,26 +35,28 @@ export default function MyPlotPage() {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.4fr_1fr]">
         <Card>
-          <CardHeader><CardTitle>Plot Layout Map</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Your Purchased Plot</CardTitle></CardHeader>
           <CardContent>
-            <div className="rounded-xl bg-surface-subtle p-4">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-neutral-400">Block {plot.block}</p>
-              <div className="grid grid-cols-7 gap-2">
-                {blockPlots.map((p) => (
-                  <div
-                    key={p.id}
-                    className={cn(
-                      "flex h-12 items-center justify-center rounded-md border text-xs font-semibold",
-                      p.id === plot.id
-                        ? "border-brand-600 bg-brand-600 text-white ring-2 ring-brand-300 ring-offset-1"
-                        : "border-border-strong bg-surface text-neutral-500"
-                    )}
-                  >
-                    {p.plotNo.replace("GCN-", "")}
+            <div className="flex min-h-[300px] items-center justify-center rounded-xl bg-surface-subtle p-6 sm:p-8">
+              <div className="w-full max-w-sm">
+                <div className="mb-4 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">Block {plot.block}</p>
+                    <p className="mt-1 text-sm text-neutral-500">Residential plot</p>
                   </div>
-                ))}
+                  <StatusBadge tone="green">Purchased</StatusBadge>
+                </div>
+                <div className="relative flex aspect-[4/3] items-center justify-center rounded-2xl border-2 border-brand-600 bg-brand-50 shadow-card ring-4 ring-brand-100">
+                  <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium text-neutral-400">{plot.roadWidthFt} ft road</span>
+                  <div className="text-center">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">Your plot</p>
+                    <p className="mt-2 text-2xl font-bold text-brand-800">{plot.plotNo}</p>
+                    <p className="mt-1 text-sm font-medium text-brand-700">{plot.areaSqYd} sq yd</p>
+                  </div>
+                  <span className="absolute bottom-3 right-3 rounded-md bg-white/90 px-2 py-1 text-xs font-semibold text-brand-700 shadow-sm">{plot.facing} facing</span>
+                </div>
+                <p className="mt-5 text-center text-xs leading-5 text-neutral-500">Only the plot registered to your buyer account is shown here.</p>
               </div>
-              <p className="mt-3 text-xs text-neutral-400">Your plot <span className="font-semibold text-brand-700">{plot.plotNo}</span> is highlighted above.</p>
             </div>
           </CardContent>
         </Card>

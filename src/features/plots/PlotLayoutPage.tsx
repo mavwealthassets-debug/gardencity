@@ -70,10 +70,10 @@ export default function PlotLayoutPage() {
       <PageHeader title="Plot Layout" description="Interactive master plan of Garden City Naugaon township." />
       <div className="flex flex-col gap-5 px-4 sm:px-6">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <MetricCard label="Available" value={String(stats.available)} icon={Tag} iconTone="green" progressPercent={(stats.available / plots.length) * 100} />
-          <MetricCard label="Booked" value={String(stats.booked)} icon={CalendarCheck} iconTone="orange" progressPercent={(stats.booked / plots.length) * 100} />
-          <MetricCard label="Sold" value={String(stats.sold)} icon={CheckCircle2} iconTone="red" progressPercent={(stats.sold / plots.length) * 100} />
-          <MetricCard label="Reserved / Blocked" value={String(stats.reserved)} icon={Lock} iconTone="gray" progressPercent={(stats.reserved / plots.length) * 100} />
+          <MetricCard label="Available" value={String(stats.available)} icon={Tag} iconTone="green" progressPercent={(stats.available / plots.length) * 100} onClick={() => setStatusFilter("available")} className={statusFilter === "available" ? "ring-2 ring-status-available" : undefined} />
+          <MetricCard label="Booked" value={String(stats.booked)} icon={CalendarCheck} iconTone="orange" progressPercent={(stats.booked / plots.length) * 100} onClick={() => setStatusFilter("booked")} className={statusFilter === "booked" ? "ring-2 ring-status-booked" : undefined} />
+          <MetricCard label="Sold" value={String(stats.sold)} icon={CheckCircle2} iconTone="red" progressPercent={(stats.sold / plots.length) * 100} onClick={() => setStatusFilter("sold")} className={statusFilter === "sold" ? "ring-2 ring-status-sold" : undefined} />
+          <MetricCard label="Reserved / Blocked" value={String(stats.reserved)} icon={Lock} iconTone="gray" progressPercent={(stats.reserved / plots.length) * 100} onClick={() => setStatusFilter("reserved")} className={statusFilter === "reserved" ? "ring-2 ring-status-reserved" : undefined} />
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-border bg-surface p-3">
@@ -113,7 +113,7 @@ export default function PlotLayoutPage() {
                       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">Block {block}</p>
                       <div className="grid grid-cols-10 gap-1.5">
                         {plots.filter((p) => p.block === block).map((p) => (
-                          <button key={p.id} type="button" onClick={() => setActivePlot(p)} title={`Plot ${p.plotNo} — ${p.status}`} className={cn("flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-md border text-[10px] font-semibold transition-transform hover:z-10 hover:scale-110", STATUS_CELL[p.status], !filteredIds.has(p.id) && "opacity-20", activePlot?.id === p.id && "ring-2 ring-brand-600 ring-offset-1")}>{p.plotNo.replace("GCN-", "")}</button>
+                          <button key={p.id} type="button" onClick={() => setActivePlot(p)} title={`Plot ${p.plotNo} — ${p.status}`} className={cn("flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-md border text-[10px] font-semibold transition-transform hover:z-10 hover:scale-110", STATUS_CELL[p.status], !filteredIds.has(p.id) && "invisible pointer-events-none", activePlot?.id === p.id && "ring-2 ring-brand-600 ring-offset-1")}>{p.plotNo.replace("GCN-", "")}</button>
                         ))}
                       </div>
                     </div>

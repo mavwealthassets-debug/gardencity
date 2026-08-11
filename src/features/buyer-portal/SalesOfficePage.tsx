@@ -31,10 +31,10 @@ export default function SalesOfficePage() {
       </div>
 
       <Card className="overflow-hidden">
-        <img src={gardenCityProject.heroImage} alt="Garden City Naugaon sales office" className="aspect-[878/295] w-full object-cover" />
+        <img src={gardenCityProject.heroImage} alt="Garden City Naugaon sales office" className="h-48 w-full object-cover sm:h-auto sm:aspect-[878/295]" />
         <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="flex items-center gap-2 text-sm text-neutral-600"><MapPin size={16} className="text-brand-700" /> {gardenCityProject.location}</p>
-          <Button variant="secondary" onClick={() => window.location.assign("https://www.google.com/maps/search/?api=1&query=Garden+City+Naugaon+Haryana")}><Navigation size={15} /> Get Directions</Button>
+          <p className="flex min-w-0 items-start gap-2 text-sm text-neutral-600"><MapPin size={16} className="mt-0.5 shrink-0 text-brand-700" /> <span className="break-words">{gardenCityProject.location}</span></p>
+          <Button className="w-full sm:w-auto" variant="secondary" onClick={() => window.location.assign("https://www.google.com/maps/search/?api=1&query=Garden+City+Naugaon+Haryana")}><Navigation size={15} /> Get Directions</Button>
         </CardContent>
       </Card>
 
@@ -51,7 +51,7 @@ export default function SalesOfficePage() {
           <p className="text-sm text-neutral-600">
             The Garden City Naugaon Sales Office is your one-stop destination to experience the project firsthand. Our team is here to help you with site visits, bookings, documentation, and all your queries regarding plots, amenities, and offers.
           </p>
-          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="mt-4 grid grid-cols-1 gap-4 min-[380px]:grid-cols-2 sm:grid-cols-4">
             {SERVICES.map((s) => (
               <div key={s.title} className="text-center">
                 <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-brand-700"><s.icon size={18} /></span>

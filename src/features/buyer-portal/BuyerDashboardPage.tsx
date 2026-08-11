@@ -38,7 +38,7 @@ export default function BuyerDashboardPage() {
     <div className="flex flex-col gap-5">
       <Card className="overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr]">
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <p className="text-sm text-neutral-500">Welcome back,</p>
             <h1 className="mt-1 text-2xl font-bold text-neutral-900">{buyer.name} 👋</h1>
             <p className="mt-3 max-w-sm text-sm text-neutral-500">Thank you for being a valued part of Garden City Naugaon.</p>
@@ -51,7 +51,7 @@ export default function BuyerDashboardPage() {
         <Card className="flex min-h-[330px] flex-col">
           <CardHeader className="pb-3"><CardTitle>My Property</CardTitle></CardHeader>
           <CardContent className="flex flex-1 flex-col gap-2">
-            <span className="flex items-center justify-between">
+            <span className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-lg font-bold text-neutral-900">Plot {plot.plotNo}</span>
               <StatusBadge tone="green" dot={false}>{plot.status[0].toUpperCase() + plot.status.slice(1)}</StatusBadge>
             </span>

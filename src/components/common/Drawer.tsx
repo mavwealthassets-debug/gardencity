@@ -44,12 +44,12 @@ export function Drawer({ open, onClose, title, subtitle, children, footer, width
         aria-modal="true"
         aria-labelledby="drawer-title"
         className={cn(
-          "relative z-10 flex h-full w-full flex-col border-l border-border bg-surface shadow-drawer animate-slide-in-right",
+          "relative z-10 flex h-full w-full min-w-0 flex-col border-l border-border bg-surface shadow-drawer animate-slide-in-right",
           WIDTH_CLASSES[width]
         )}
       >
         {title && (
-          <div className="flex items-start justify-between gap-3 border-b border-border p-5">
+          <div className="flex items-start justify-between gap-3 border-b border-border p-4 sm:p-5">
             <div className="min-w-0">
               <h2 id="drawer-title" className="text-base font-semibold text-neutral-900">
                 {title}
@@ -66,8 +66,8 @@ export function Drawer({ open, onClose, title, subtitle, children, footer, width
             </button>
           </div>
         )}
-        <div className="flex-1 overflow-y-auto p-5">{children}</div>
-        {footer && <div className="flex flex-wrap items-center gap-2 border-t border-border p-4">{footer}</div>}
+        <div className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-5">{children}</div>
+        {footer && <div className="flex flex-wrap items-center gap-2 border-t border-border p-4 [&>button]:max-sm:flex-1">{footer}</div>}
       </div>
     </div>,
     document.body

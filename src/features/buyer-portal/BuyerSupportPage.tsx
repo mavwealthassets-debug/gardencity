@@ -37,8 +37,8 @@ export default function BuyerSupportPage() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card className="flex min-h-[282px] flex-col p-5">
           <h2 className="text-sm font-semibold text-neutral-900">Relationship Manager</h2>
-          <div className="flex flex-1 items-center gap-5 py-5">
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-brand-50 text-2xl font-bold text-brand-700">SS</div>
+          <div className="flex flex-1 flex-col items-start gap-4 py-5 min-[380px]:flex-row min-[380px]:items-center sm:gap-5">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xl font-bold text-brand-700 sm:h-24 sm:w-24 sm:text-2xl">SS</div>
             <div className="min-w-0">
               <p className="text-base font-semibold text-brand-700">{rm.name}</p>
               <p className="mb-4 text-xs text-neutral-500">{rm.title}</p>
@@ -47,7 +47,7 @@ export default function BuyerSupportPage() {
               <a href={`mailto:${rm.email}`} className="flex items-center gap-2 text-xs text-neutral-700"><Mail size={14} /> {rm.email}</a>
             </div>
           </div>
-          <div className="flex gap-2 border-t border-border pt-3">
+          <div className="grid grid-cols-1 gap-2 border-t border-border pt-3 min-[380px]:grid-cols-3">
             <Button variant="outline" size="sm" className={contactButton} onClick={() => window.location.href = `tel:${rm.phone.replace(/\s/g, "")}`}><Phone size={13} /> Call</Button>
             <Button variant="outline" size="sm" className={contactButton} onClick={() => window.open(`https://wa.me/${rm.phone.replace(/\D/g, "")}`, "_blank")}><MessageCircle size={13} /> WhatsApp</Button>
             <Button variant="outline" size="sm" className={contactButton} onClick={() => window.location.href = `mailto:${rm.email}`}><Mail size={13} /> Email Us</Button>
@@ -56,15 +56,15 @@ export default function BuyerSupportPage() {
 
         <Card className="flex min-h-[282px] flex-col p-5">
           <h2 className="text-sm font-semibold text-neutral-900">Customer Support</h2>
-          <div className="flex flex-1 items-center gap-7 py-5">
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-neutral-50 text-neutral-800"><Headset size={62} strokeWidth={1.6} /></div>
+          <div className="flex flex-1 flex-col items-start gap-4 py-5 min-[380px]:flex-row min-[380px]:items-center sm:gap-7">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-neutral-50 text-neutral-800 sm:h-24 sm:w-24"><Headset size={54} strokeWidth={1.6} /></div>
             <div className="space-y-3 text-xs text-neutral-700">
               <a href="tel:+9118001234567" className="flex items-center gap-2"><Phone size={14} /> +91 1800 123 4567</a>
               <a href="mailto:support@gardencity.com" className="flex items-center gap-2"><Mail size={14} /> support@gardencity.com</a>
               <p className="flex items-center gap-2"><Clock size={14} /> Mon – Sat (10 AM – 7 PM)</p>
             </div>
           </div>
-          <div className="flex gap-2 border-t border-border pt-3">
+          <div className="grid grid-cols-1 gap-2 border-t border-border pt-3 min-[380px]:grid-cols-3">
             <Button variant="outline" size="sm" className={contactButton} onClick={() => window.location.href = "tel:+9118001234567"}><Phone size={13} /> Call</Button>
             <Button variant="outline" size="sm" className={contactButton} onClick={() => window.open("https://wa.me/9118001234567", "_blank")}><MessageCircle size={13} /> WhatsApp</Button>
             <Button variant="outline" size="sm" className={contactButton} onClick={() => window.location.href = "mailto:support@gardencity.com"}><Mail size={13} /> Email Us</Button>

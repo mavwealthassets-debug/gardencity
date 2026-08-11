@@ -118,9 +118,9 @@ export default function MyPlotPage() {
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between py-2">
+    <div className="flex items-start justify-between gap-3 py-2">
       <span className="text-neutral-500">{label}</span>
-      <span className="font-medium text-neutral-800">{value}</span>
+      <span className="min-w-0 break-words text-right font-medium text-neutral-800">{value}</span>
     </div>
   );
 }

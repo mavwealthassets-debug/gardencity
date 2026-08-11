@@ -50,7 +50,7 @@ export function BuyerLayout() {
           <main id={MAIN_ID} className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
             <ScrollToTopOnNavigate containerId={MAIN_ID} />
             <Suspense fallback={<PageLoader />}>
-              <div className="mx-auto w-full max-w-[1440px] px-4 pt-5 pb-10 sm:px-5 sm:pt-6 lg:px-7 lg:pb-12 xl:px-8">
+              <div className="mx-auto w-full max-w-[1440px] px-3 pt-4 pb-8 min-[380px]:px-4 sm:px-5 sm:pt-6 sm:pb-10 lg:px-7 lg:pb-12 xl:px-8">
                 <Outlet />
               </div>
             </Suspense>

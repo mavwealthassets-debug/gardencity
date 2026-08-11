@@ -14,7 +14,7 @@ export function BuyerTopbar({ onMenuClick }: { onMenuClick: () => void }) {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
-    <header className="sticky top-0 z-30 flex h-[72px] shrink-0 items-center gap-3 border-b border-border bg-surface px-4 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b border-border bg-surface px-3 min-[380px]:px-4 sm:h-[72px] sm:gap-3 sm:px-6">
       <button
         type="button"
         onClick={onMenuClick}

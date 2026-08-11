@@ -75,6 +75,15 @@
 
   body {
     @apply bg-surface-subtle text-neutral-900 font-sans antialiased;
+    min-width: 320px;
+    overflow-wrap: break-word;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
   }
 
   button,
@@ -102,6 +111,16 @@
     border-radius: 999px;
     border: 2px solid transparent;
     background-clip: content-box;
+  }
+}
+
+@media (max-width: 639px) {
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    max-width: 100%;
   }
 }
 

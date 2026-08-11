@@ -96,13 +96,13 @@ export default function AdminDashboardPage() {
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
           <MetricCard label="Total Plots" value={String(plots.length)} icon={Grid3x3} iconTone="green" progressPercent={100} onClick={() => navigate("/admin/plot-inventory")} />
-          <MetricCard label="Available" value={String(stats.available)} icon={Tag} iconTone="blue" progressPercent={(stats.available / plots.length) * 100} onClick={() => navigate("/admin/plot-inventory")} />
-          <MetricCard label="Booked" value={String(stats.booked)} icon={CalendarCheck} iconTone="orange" progressPercent={(stats.booked / plots.length) * 100} onClick={() => navigate("/admin/plot-inventory")} />
-          <MetricCard label="Sold" value={String(stats.sold)} icon={CheckCircle2} iconTone="green" progressPercent={(stats.sold / plots.length) * 100} onClick={() => navigate("/admin/plot-inventory")} />
+          <MetricCard label="Available" value={String(stats.available)} icon={Tag} iconTone="blue" progressPercent={(stats.available / plots.length) * 100} onClick={() => navigate("/admin/plot-inventory?status=available")} />
+          <MetricCard label="Booked" value={String(stats.booked)} icon={CalendarCheck} iconTone="orange" progressPercent={(stats.booked / plots.length) * 100} onClick={() => navigate("/admin/plot-inventory?status=booked")} />
+          <MetricCard label="Sold" value={String(stats.sold)} icon={CheckCircle2} iconTone="green" progressPercent={(stats.sold / plots.length) * 100} onClick={() => navigate("/admin/plot-inventory?status=sold")} />
           <MetricCard label="Total Sales Value" value={formatINRCompact(stats.totalSalesValue)} icon={IndianRupee} iconTone="purple" sublabel="All time" sparkline={salesSpark} sparklineTone="purple" onClick={() => navigate("/admin/finance")} />
           <MetricCard label="Amount Collected" value={formatINRCompact(stats.amountCollected)} icon={Wallet} iconTone="teal" sublabel={`${((stats.amountCollected / stats.totalSalesValue) * 100).toFixed(1)}% of sales value`} sparkline={collectionsSpark} sparklineTone="green" onClick={() => navigate("/admin/finance")} />
           <MetricCard label="Outstanding" value={formatINRCompact(stats.outstanding)} icon={ReceiptText} iconTone="red" sublabel={`${((stats.outstanding / stats.totalSalesValue) * 100).toFixed(1)}% of sales value`} sparkline={outstandingSpark} sparklineTone="red" onClick={() => navigate("/admin/finance")} />
-          <MetricCard label="Active Buyers" value={String(stats.activeBuyers)} icon={Users} iconTone="blue" sublabel="Engaged buyers" sparkline={collectionsSpark.map((v) => v + 1)} sparklineTone="blue" onClick={() => navigate("/admin/buyers")} />
+          <MetricCard label="Active Buyers" value={String(stats.activeBuyers)} icon={Users} iconTone="blue" sublabel="Engaged buyers" sparkline={collectionsSpark.map((v) => v + 1)} sparklineTone="blue" onClick={() => navigate("/admin/buyers?status=Active")} />
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[0.85fr_1.3fr_1fr]">

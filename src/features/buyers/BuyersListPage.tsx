@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Users, UserCheck, Sparkles, Gift } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { MetricCard } from "@/components/common/MetricCard";
@@ -20,8 +20,10 @@ const PAGE_SIZE = 10;
 export default function BuyersListPage() {
   const { buyers, plots } = useAppData();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const requestedStatus = searchParams.get("status");
+  const statusFilter = ["Active", "Lead", "Inactive"].includes(requestedStatus ?? "") ? requestedStatus! : "all";
   const [rmFilter, setRmFilter] = useState("all");
   const [page, setPage] = useState(1);
 
@@ -47,21 +49,25 @@ export default function BuyersListPage() {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const applyStatusFilter = (status: string) => {
+    setPage(1);
+    setSearchParams(status === "all" ? {} : { status });
+  };
 
   return (
     <div className="flex flex-col gap-5 pb-10">
       <PageHeader title="Buyers" description="Manage buyer relationships across the sales lifecycle." />
       <div className="flex flex-col gap-5 px-4 sm:px-6">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <MetricCard label="Total Buyers" value={String(stats.total)} icon={Users} iconTone="blue" />
-          <MetricCard label="Active Buyers" value={String(stats.active)} icon={UserCheck} iconTone="green" />
+          <MetricCard label="Total Buyers" value={String(stats.total)} icon={Users} iconTone="blue" onClick={() => applyStatusFilter("all")} />
+          <MetricCard label="Active Buyers" value={String(stats.active)} icon={UserCheck} iconTone="green" onClick={() => applyStatusFilter("Active")} />
           <MetricCard label="Converted Buyers" value={String(stats.converted)} icon={Sparkles} iconTone="teal" />
           <MetricCard label="Warm Leads" value={String(stats.leads)} icon={Gift} iconTone="orange" />
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <SearchInput value={query} onChange={(v) => { setQuery(v); setPage(1); }} placeholder="Search by name, phone or plot..." containerClassName="sm:w-72" />
-          <Select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} className="sm:w-40" aria-label="Filter by status">
+          <Select value={statusFilter} onChange={(e) => applyStatusFilter(e.target.value)} className="sm:w-40" aria-label="Filter by status">
             <option value="all">All Status</option>
             <option value="Active">Active</option>
             <option value="Lead">Lead</option>
@@ -91,7 +97,7 @@ export default function BuyersListPage() {
               {pageItems.length === 0 ? (
                 <tr>
                   <td colSpan={8}>
-                    <EmptyState title="No buyers found" description="Try a different search term or filter." action={<Button variant="secondary" size="sm" onClick={() => { setQuery(""); setStatusFilter("all"); setRmFilter("all"); }}>Clear filters</Button>} />
+                    <EmptyState title="No buyers found" description="Try a different search term or filter." action={<Button variant="secondary" size="sm" onClick={() => { setQuery(""); applyStatusFilter("all"); setRmFilter("all"); }}>Clear filters</Button>} />
                   </td>
                 </tr>
               ) : (

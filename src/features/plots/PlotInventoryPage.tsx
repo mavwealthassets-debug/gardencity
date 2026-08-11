@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Download, Grid3x3, Layers, Plus, SlidersHorizontal, Tag, CalendarCheck, CheckCircle2 } from "lucide-react";
 import { MetricCard } from "@/components/common/MetricCard";
 import { Card } from "@/components/common/Card";
@@ -20,10 +21,12 @@ import { PlotDetailDrawer } from "./PlotDetailDrawer";
 const PAGE_SIZE = 10;
 
 export default function PlotInventoryPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { plots } = useAppData();
   const { toast } = useToast();
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const requestedStatus = searchParams.get("status");
+  const statusFilter = ["available", "booked", "sold", "reserved"].includes(requestedStatus ?? "") ? requestedStatus! : "all";
   const [typeFilter, setTypeFilter] = useState("all");
   const [facingFilter, setFacingFilter] = useState("all");
   const [sizeFilter, setSizeFilter] = useState("all");
@@ -55,7 +58,11 @@ export default function PlotInventoryPage() {
   }, [plots, query, statusFilter, typeFilter, facingFilter, sizeFilter]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const reset = () => { setQuery(""); setStatusFilter("all"); setTypeFilter("all"); setFacingFilter("all"); setSizeFilter("all"); setPage(1); };
+  const applyStatusFilter = (status: string) => {
+    setPage(1);
+    setSearchParams(status === "all" ? {} : { status });
+  };
+  const reset = () => { setQuery(""); applyStatusFilter("all"); setTypeFilter("all"); setFacingFilter("all"); setSizeFilter("all"); setPage(1); };
   const toggle = (id: string) => setSelected((old) => { const next = new Set(old); if (next.has(id)) next.delete(id); else next.add(id); return next; });
 
   return (
@@ -70,16 +77,16 @@ export default function PlotInventoryPage() {
       </div>
 
       <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(5, minmax(0, 1fr)) minmax(300px, 1.7fr)" }}>
-        <MetricCard className="h-[112px]" label="Total Plots" value={String(stats.total)} icon={Grid3x3} sublabel="100% of total" progressPercent={100} />
-        <MetricCard className="h-[112px]" label="Available" value={String(stats.available)} icon={Tag} iconTone="blue" sublabel={`${((stats.available / stats.total) * 100).toFixed(2)}% of total`} progressPercent={(stats.available / stats.total) * 100} />
-        <MetricCard className="h-[112px]" label="Booked" value={String(stats.booked)} icon={CalendarCheck} iconTone="orange" sublabel={`${((stats.booked / stats.total) * 100).toFixed(2)}% of total`} progressPercent={(stats.booked / stats.total) * 100} />
-        <MetricCard className="h-[112px]" label="Sold" value={String(stats.sold)} icon={CheckCircle2} sublabel={`${((stats.sold / stats.total) * 100).toFixed(2)}% of total`} progressPercent={(stats.sold / stats.total) * 100} />
-        <MetricCard className="h-[112px]" label="Reserved" value={String(stats.reserved)} icon={Layers} iconTone="purple" sublabel={`${((stats.reserved / stats.total) * 100).toFixed(2)}% of total`} progressPercent={(stats.reserved / stats.total) * 100} />
+        <MetricCard className="h-[112px]" label="Total Plots" value={String(stats.total)} icon={Grid3x3} sublabel="100% of total" progressPercent={100} onClick={() => applyStatusFilter("all")} />
+        <MetricCard className="h-[112px]" label="Available" value={String(stats.available)} icon={Tag} iconTone="blue" sublabel={`${((stats.available / stats.total) * 100).toFixed(2)}% of total`} progressPercent={(stats.available / stats.total) * 100} onClick={() => applyStatusFilter("available")} />
+        <MetricCard className="h-[112px]" label="Booked" value={String(stats.booked)} icon={CalendarCheck} iconTone="orange" sublabel={`${((stats.booked / stats.total) * 100).toFixed(2)}% of total`} progressPercent={(stats.booked / stats.total) * 100} onClick={() => applyStatusFilter("booked")} />
+        <MetricCard className="h-[112px]" label="Sold" value={String(stats.sold)} icon={CheckCircle2} sublabel={`${((stats.sold / stats.total) * 100).toFixed(2)}% of total`} progressPercent={(stats.sold / stats.total) * 100} onClick={() => applyStatusFilter("sold")} />
+        <MetricCard className="h-[112px]" label="Reserved" value={String(stats.reserved)} icon={Layers} iconTone="purple" sublabel={`${((stats.reserved / stats.total) * 100).toFixed(2)}% of total`} progressPercent={(stats.reserved / stats.total) * 100} onClick={() => applyStatusFilter("reserved")} />
         <Card className="flex h-[112px] min-w-0 flex-col p-3"><p className="text-xs font-semibold text-neutral-800">Plot Size Distribution (by Plot Count)</p><div className="flex min-h-0 flex-1 items-center gap-3"><DonutChart data={donutData} size={82} /><DonutLegend data={donutData} /></div></Card>
       </div>
 
       <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(4, minmax(120px, 1fr)) minmax(280px, 2fr) auto auto" }}>
-        <Select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} className="h-9 text-xs"><option value="all">All Status</option><option value="available">Available</option><option value="booked">Booked</option><option value="sold">Sold</option><option value="reserved">Reserved</option></Select>
+        <Select value={statusFilter} onChange={(e) => applyStatusFilter(e.target.value)} className="h-9 text-xs"><option value="all">All Status</option><option value="available">Available</option><option value="booked">Booked</option><option value="sold">Sold</option><option value="reserved">Reserved</option></Select>
         <Select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }} className="h-9 text-xs"><option value="all">All Types</option><option value="residential">Residential</option><option value="corner">Corner</option></Select>
         <Select value={facingFilter} onChange={(e) => { setFacingFilter(e.target.value); setPage(1); }} className="h-9 text-xs"><option value="all">All Facing</option>{["North", "South", "East", "West", "North-East", "North-West", "South-East", "South-West"].map((f) => <option key={f}>{f}</option>)}</Select>
         <Select value={sizeFilter} onChange={(e) => { setSizeFilter(e.target.value); setPage(1); }} className="h-9 text-xs"><option value="all">All Sizes</option>{gardenCityProject.plotCategories.map((c) => <option key={c.label}>{c.label}</option>)}</Select>

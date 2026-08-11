@@ -20,6 +20,7 @@ import { useToast } from "@/app/toast";
 import { formatDate, formatINR, formatINRCompact } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { getBuyerById } from "@/data/buyers";
+import { loans } from "@/data/payments";
 import { buildMonthlySeries } from "@/features/dashboard/dashboard-utils";
 import type { PaymentInstallment, PaymentTransaction } from "@/types";
 
@@ -43,6 +44,8 @@ export default function FinancePage() {
   const [payAmount, setPayAmount] = useState("");
   const [payMode, setPayMode] = useState<PaymentTransaction["mode"]>("UPI");
   const [reversalTarget, setReversalTarget] = useState<PaymentInstallment | null>(null);
+  const [selectedInstallmentId, setSelectedInstallmentId] = useState<string | null>(null);
+  const [remindedInstallmentIds, setRemindedInstallmentIds] = useState<Set<string>>(new Set());
 
   const stats = useMemo(() => {
     const soldOrBooked = plots.filter((p) => p.status === "sold" || p.status === "booked");
@@ -80,6 +83,21 @@ export default function FinancePage() {
   const totalPages = Math.max(1, Math.ceil(filteredInstallments.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pagedInstallments = filteredInstallments.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const selectedInstallment = installments.find((item) => item.id === selectedInstallmentId) ?? pagedInstallments[0] ?? filteredInstallments[0] ?? null;
+  const selectedBuyer = selectedInstallment ? getBuyerById(selectedInstallment.buyerId) : undefined;
+  const selectedPlot = selectedInstallment ? plots.find((plot) => plot.plotNo === selectedInstallment.plotId || plot.id === selectedInstallment.plotId) : undefined;
+  const selectedLoan = selectedInstallment ? loans.find((loan) => loan.buyerId === selectedInstallment.buyerId) : undefined;
+  const selectedSchedule = selectedInstallment ? installments.filter((item) => item.buyerId === selectedInstallment.buyerId && item.plotId === selectedInstallment.plotId) : [];
+  const selectedBookingAmount = selectedSchedule.find((item) => item.installmentNo === 1)?.amount ?? 0;
+  const selectedPaidToDate = selectedSchedule.reduce((sum, item) => sum + item.paidAmount, 0);
+  const selectedPropertyValue = selectedPlot?.finalPrice ?? selectedSchedule.reduce((sum, item) => sum + item.amount, 0);
+  const selectedOutstanding = Math.max(0, selectedPropertyValue - selectedPaidToDate);
+
+  function sendReminder() {
+    if (!selectedInstallment || !selectedBuyer) return;
+    setRemindedInstallmentIds((current) => new Set(current).add(selectedInstallment.id));
+    toast({ variant: "success", title: "Reminder sent", description: `${selectedBuyer.name} was reminded about ${formatINR(selectedInstallment.amount - selectedInstallment.paidAmount)} due on ${formatDate(selectedInstallment.dueDate)}.` });
+  }
 
   function openRecordPayment(installment: PaymentInstallment) {
     setPayTarget(installment);
@@ -102,7 +120,7 @@ export default function FinancePage() {
     <div className="flex flex-col gap-3 pb-8">
       <div className="flex justify-end gap-2 px-4 pt-3 sm:px-6">
         <Button variant="secondary" onClick={() => toast({ variant: "success", title: "Report exported" })}><Download size={15} /> Export Report</Button>
-        <Button onClick={() => filteredInstallments[0] && openRecordPayment(filteredInstallments[0])}><Plus size={15} /> Record Payment</Button>
+        <Button onClick={() => selectedInstallment && openRecordPayment(selectedInstallment)} disabled={!selectedInstallment}><Plus size={15} /> Record Payment</Button>
       </div>
 
       <div className="flex flex-col gap-3 px-4 sm:px-6">
@@ -130,13 +148,15 @@ export default function FinancePage() {
           </Card>
           <Card className="xl:absolute xl:right-0 xl:top-0 xl:h-[500px] xl:w-[260px]">
             <CardContent className="flex h-full flex-col gap-3 p-4">
-              <div className="flex items-center gap-2 border-b border-border pb-3"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 font-semibold text-emerald-700">RS</span><div><p className="font-semibold">Rohit Sharma</p><p className="text-xs text-neutral-500">GCN-045</p></div><StatusBadge tone="green" className="ml-auto">Active</StatusBadge></div>
-              <p className="text-xs font-semibold uppercase text-neutral-600">Financial Summary</p>
-              {[["Property Value","₹ 45,00,000"],["Booking Amount","₹ 5,00,000"],["Loan Amount","₹ 28,00,000"],["Disbursed Amount","₹ 25,20,000"],["Paid to Date","₹ 16,80,000"]].map(([k,v]) => <div key={k} className="flex justify-between text-xs"><span className="text-neutral-500">{k}</span><span className="font-medium">{v}</span></div>)}
-              <div className="flex justify-between border-t border-border pt-3 text-xs"><span className="font-medium">Outstanding Balance</span><span className="font-bold text-red-500">₹ 7,70,000</span></div>
-              <p className="text-xs font-semibold uppercase text-neutral-600">Bank Details</p>
-              {[["Bank Name","HDFC Bank"],["Account Holder","Rohit Sharma"],["Account Number","5010 •••• 1234"],["IFSC Code","HDFC0005010"]].map(([k,v]) => <div key={k} className="flex justify-between text-[11px]"><span className="text-neutral-500">{k}</span><span>{v}</span></div>)}
-              <div className="mt-auto grid grid-cols-2 gap-2"><Button variant="secondary" className="px-2 text-xs"><Send size={13}/> Remind</Button><Button className="px-2 text-xs" onClick={() => filteredInstallments[0] && openRecordPayment(filteredInstallments[0])}>Record</Button></div>
+              {selectedInstallment && selectedBuyer ? <>
+                <div className="flex items-center gap-2 border-b border-border pb-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 font-semibold text-emerald-700">{selectedBuyer.name.split(" ").map((part) => part[0]).join("").slice(0, 2)}</span><div className="min-w-0"><p className="truncate font-semibold">{selectedBuyer.name}</p><p className="text-xs text-neutral-500">{selectedInstallment.plotId}</p></div><StatusBadge tone={selectedBuyer.status === "Active" ? "green" : "gray"} className="ml-auto">{selectedBuyer.status}</StatusBadge></div>
+                <p className="text-xs font-semibold uppercase text-neutral-600">Financial Summary</p>
+                {[["Property Value", formatINR(selectedPropertyValue)], ["Booking Amount", formatINR(selectedBookingAmount)], ["Loan Amount", selectedLoan ? formatINR(selectedLoan.loanAmount) : "Self Funded"], ["Disbursed Amount", selectedLoan ? formatINR(selectedLoan.disbursedAmount) : "—"], ["Paid to Date", formatINR(selectedPaidToDate)]].map(([k,v]) => <div key={k} className="flex justify-between gap-2 text-xs"><span className="text-neutral-500">{k}</span><span className="text-right font-medium">{v}</span></div>)}
+                <div className="flex justify-between gap-2 border-t border-border pt-3 text-xs"><span className="font-medium">Outstanding Balance</span><span className="text-right font-bold text-red-500">{formatINR(selectedOutstanding)}</span></div>
+                <p className="text-xs font-semibold uppercase text-neutral-600">Bank Details</p>
+                {[["Bank Name", selectedLoan?.bankName ?? "No active loan"], ["Account Holder", selectedLoan?.accountHolder ?? selectedBuyer.name], ["Account Number", selectedLoan?.accountNumberMasked ?? "—"], ["IFSC Code", selectedLoan?.ifsc ?? "—"]].map(([k,v]) => <div key={k} className="flex justify-between gap-2 text-[11px]"><span className="text-neutral-500">{k}</span><span className="truncate text-right">{v}</span></div>)}
+                <div className="mt-auto grid grid-cols-2 gap-2"><Button variant="secondary" className="px-2 text-xs" onClick={sendReminder}><Send size={13}/>{remindedInstallmentIds.has(selectedInstallment.id) ? "Sent" : "Remind"}</Button><Button className="px-2 text-xs" onClick={() => openRecordPayment(selectedInstallment)}>Record</Button></div>
+              </> : <div className="flex h-full items-center justify-center text-center text-sm text-neutral-500">Select a payment to see buyer details.</div>}
             </CardContent>
           </Card>
         </div>
@@ -173,8 +193,9 @@ export default function FinancePage() {
                     pagedInstallments.map((i) => {
                       const buyer = getBuyerById(i.buyerId);
                       const balance = i.amount - i.paidAmount;
+                      const isSelected = selectedInstallment?.id === i.id;
                       return (
-                        <TR key={i.id}>
+                        <TR key={i.id} tabIndex={0} aria-selected={isSelected} onClick={() => setSelectedInstallmentId(i.id)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedInstallmentId(i.id); } }} className={cn("cursor-pointer transition-colors hover:bg-brand-50/60 focus-visible:bg-brand-50 focus-visible:outline-none", isSelected && "bg-brand-50 ring-1 ring-inset ring-brand-200")}>
                           <TD className="font-medium text-neutral-900">{buyer?.name ?? "—"}</TD>
                           <TD>{i.plotId}</TD>
                           <TD>{i.installmentLabel} ({i.installmentNo} of {i.totalInstallments})</TD>
@@ -185,11 +206,11 @@ export default function FinancePage() {
                           <TD><StatusBadge tone={paymentStatusTone(i.status)} dot={false}>{i.status}</StatusBadge></TD>
                           <TD>
                             {i.status === "Paid" ? (
-                              <button onClick={() => setReversalTarget(i)} className="text-xs font-medium text-status-sold hover:underline">
+                              <button onClick={(event) => { event.stopPropagation(); setSelectedInstallmentId(i.id); setReversalTarget(i); }} className="text-xs font-medium text-status-sold hover:underline">
                                 <Undo2 size={12} className="mr-1 inline" /> Reverse
                               </button>
                             ) : (
-                              <button onClick={() => openRecordPayment(i)} className="text-xs font-medium text-brand-700 hover:underline">
+                              <button onClick={(event) => { event.stopPropagation(); setSelectedInstallmentId(i.id); openRecordPayment(i); }} className="text-xs font-medium text-brand-700 hover:underline">
                                 Record Payment
                               </button>
                             )}

@@ -53,7 +53,7 @@ export default function ProjectOverviewPage() {
             <div className="mt-3 flex flex-wrap gap-2">
               <HeroChip icon={Layers} label="Township Size" value={`${project.townshipSizeAcres} Acres`} />
               <HeroChip icon={Grid3x3} label="Total Plots" value={`${project.totalPlots} Plots`} />
-              <HeroChip icon={Sparkles} label="Amenities" value={`${project.amenities.length}+`} />
+              <HeroChip icon={Sparkles} label="Amenities" value={String(project.amenities.length)} />
             </div>
           </div>
         </div>
@@ -72,21 +72,21 @@ export default function ProjectOverviewPage() {
           <Card className="relative flex flex-col xl:h-full xl:overflow-hidden">
             <CardHeader className="p-2.5">
               <CardTitle className="text-[13px]">Amenities & Features</CardTitle>
-              <button type="button" className="text-[11px] font-semibold text-brand-700">View All</button>
+              <button type="button" onClick={() => navigate("/admin/amenities")} className="text-[11px] font-semibold text-brand-700">View All</button>
             </CardHeader>
-            <CardContent className="flex flex-1 flex-col px-2.5 pb-2.5 pt-0">
-              <ul className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10.5px] font-medium leading-none text-neutral-700">
-                {project.amenities.map((a, index) => {
+            <CardContent className="flex flex-1 flex-col px-2.5 pb-10 pt-0">
+              <ul className="grid grid-cols-2 gap-x-4 gap-y-2 text-[10.5px] font-medium leading-none text-neutral-700">
+                {project.amenities.slice(0, 8).map((a, index) => {
                   const Icon = AMENITY_ICONS[index] ?? Sparkles;
                   return (
-                    <li key={a} className="flex min-w-0 items-center gap-2">
+                    <li key={a} className="grid h-5 min-w-0 grid-cols-[20px_minmax(0,1fr)] items-center gap-2">
                       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-700"><Icon size={11} /></span>
-                      <span className="whitespace-nowrap">{a === "Temple & Meditation Zone" ? "Temple & Meditation" : a}</span>
+                      <span className="truncate">{a}</span>
                     </li>
                   );
                 })}
               </ul>
-              <p className="absolute inset-x-2.5 bottom-2.5 flex h-7 items-center gap-2 rounded-lg bg-brand-50 px-2.5 text-[11px] font-semibold text-brand-700"><Sparkles size={13} /> 20+ Premium Amenities</p>
+              <p className="absolute inset-x-2.5 bottom-2.5 flex h-7 items-center gap-2 rounded-lg bg-brand-50 px-2.5 text-[11px] font-semibold text-brand-700"><Sparkles size={13} /> {project.amenities.length} Premium Amenities</p>
             </CardContent>
           </Card>
 

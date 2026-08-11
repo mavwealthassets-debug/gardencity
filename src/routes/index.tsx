@@ -6,6 +6,7 @@ import { LoginPage } from "@/features/auth/LoginPage";
 
 const AdminDashboardPage = lazy(() => import("@/features/dashboard/AdminDashboardPage"));
 const ProjectOverviewPage = lazy(() => import("@/features/projects/ProjectOverviewPage"));
+const AmenitiesPage = lazy(() => import("@/features/projects/AmenitiesPage"));
 const PlotLayoutPage = lazy(() => import("@/features/plots/PlotLayoutPage"));
 const PlotInventoryPage = lazy(() => import("@/features/plots/PlotInventoryPage"));
 const BuyersListPage = lazy(() => import("@/features/buyers/BuyersListPage"));
@@ -41,6 +42,7 @@ export function AppRoutes() {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboardPage />} />
         <Route path="projects" element={<ProjectOverviewPage />} />
+        <Route path="amenities" element={<AmenitiesPage />} />
         <Route path="plot-layout" element={<PlotLayoutPage />} />
         <Route path="plot-inventory" element={<PlotInventoryPage />} />
         <Route path="buyers" element={<BuyersListPage />} />

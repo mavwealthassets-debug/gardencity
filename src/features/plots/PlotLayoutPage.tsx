@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Download, Expand, Minus, Plus, RotateCcw, Tag, CalendarCheck, CheckCircle2, Lock, SlidersHorizontal, MapPinned, X } from "lucide-react";
+import { Expand, Minus, Plus, RotateCcw, Tag, CalendarCheck, CheckCircle2, Lock, SlidersHorizontal, MapPinned, X } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { MetricCard } from "@/components/common/MetricCard";
 import { Select } from "@/components/common/Field";
@@ -7,7 +7,6 @@ import { Button } from "@/components/common/Button";
 import { Modal } from "@/components/common/Modal";
 import { cn } from "@/lib/utils";
 import { useAppData } from "@/app/store";
-import { useToast } from "@/app/toast";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { Plot, PlotStatus } from "@/types";
 import { PlotDetailDrawer } from "./PlotDetailDrawer";
@@ -29,7 +28,6 @@ const LEGEND: { status: PlotStatus; label: string }[] = [
 
 export default function PlotLayoutPage() {
   const { plots } = useAppData();
-  const { toast } = useToast();
   const [sizeFilter, setSizeFilter] = useState("all");
   const [facingFilter, setFacingFilter] = useState("all");
   const [cornerFilter, setCornerFilter] = useState("all");
@@ -67,24 +65,6 @@ export default function PlotLayoutPage() {
     setParkFilter("all"); setBlockFilter("all"); setStatusFilter("all");
   }
 
-  async function downloadLayout() {
-    try {
-      const response = await fetch("/garden-city-master-plan.png");
-      if (!response.ok) throw new Error("Unable to load layout");
-      const url = URL.createObjectURL(await response.blob());
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `garden-city-layout-${new Date().toISOString().slice(0, 10)}.png`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      toast({ variant: "success", title: "Layout downloaded", description: "The Garden City master plan has been saved to your device." });
-    } catch {
-      toast({ variant: "error", title: "Download failed", description: "The layout could not be downloaded. Please try again." });
-    }
-  }
-
   return (
     <div className="flex flex-col gap-5 pb-10">
       <PageHeader title="Plot Layout" description="Interactive master plan of Garden City Naugaon township." />
@@ -114,17 +94,6 @@ export default function PlotLayoutPage() {
               <button type="button" onClick={() => setZoom((z) => Math.max(0.6, z - 0.15))} aria-label="Zoom out" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border-strong bg-surface text-neutral-600 shadow-card hover:bg-surface-muted"><Minus size={16} /></button>
               <button type="button" onClick={() => setZoom(1)} aria-label="Reset zoom" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border-strong bg-surface text-neutral-600 shadow-card hover:bg-surface-muted"><RotateCcw size={14} /></button>
             </div>
-            <button
-              type="button"
-              onClick={() => { setMasterPlanZoom(1); setShowMasterPlan(true); }}
-              className="absolute right-4 top-4 z-10 w-40 overflow-hidden rounded-xl border border-border-strong bg-white p-1.5 text-left shadow-popover transition-transform hover:scale-[1.02] sm:w-52"
-              aria-label="Open actual Garden City master plan"
-            >
-              <span className="mb-1 flex items-center justify-between px-1 text-[10px] font-semibold text-neutral-700">
-                Actual Master Plan <Expand size={12} className="text-brand-700" />
-              </span>
-              <img src="/garden-city-master-plan.png" alt="Garden City Naugaon actual master plan preview" className="h-24 w-full rounded-lg bg-surface-subtle object-contain sm:h-28" />
-            </button>
             <div className="overflow-auto rounded-lg bg-surface-subtle py-4">
               <div className="origin-top-left px-16 transition-transform" style={{ transform: `scale(${zoom})` }}>
                 <div className="flex min-w-max flex-col gap-8">
@@ -143,7 +112,7 @@ export default function PlotLayoutPage() {
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
               <ul className="flex flex-wrap gap-4">{LEGEND.map((l) => <li key={l.status} className="flex items-center gap-1.5 text-xs text-neutral-600"><span className={cn("h-2.5 w-2.5 rounded-full border", STATUS_CELL[l.status])} />{l.label}</li>)}</ul>
-              <Button variant="secondary" size="sm" onClick={downloadLayout}><Download size={14} /> Download Layout</Button>
+              <Button variant="secondary" size="sm" onClick={() => { setMasterPlanZoom(1); setShowMasterPlan(true); }}><Expand size={14} /> Preview Layout</Button>
             </div>
           </div>
 
@@ -179,9 +148,9 @@ export default function PlotLayoutPage() {
         </div>
       </Modal>
       {showMasterPlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/75 p-4" role="dialog" aria-modal="true" aria-label="Garden City actual master plan">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/75 p-2 sm:p-4" role="dialog" aria-modal="true" aria-label="Garden City actual master plan">
           <button type="button" onClick={() => setShowMasterPlan(false)} className="absolute inset-0" aria-label="Close master plan" />
-          <div className="relative z-10 flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white p-3 shadow-popover">
+          <div className="relative z-10 flex h-full w-full flex-col overflow-hidden rounded-xl bg-white p-3 shadow-popover sm:rounded-2xl">
             <div className="mb-2 flex items-center justify-between gap-3 px-1">
               <div><h2 className="text-base font-semibold text-neutral-900">Garden City Actual Master Plan</h2><p className="text-xs text-neutral-500">Reference layout showing roads, parks, plots, and common areas.</p></div>
               <div className="flex items-center gap-1.5">

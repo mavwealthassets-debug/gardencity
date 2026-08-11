@@ -120,7 +120,7 @@ export default function BuyerPaymentsPage() {
       </Card>
 
       <Card>
-        <CardContent className="flex flex-col items-start gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <CardContent className="flex min-h-[92px] flex-col items-start justify-center gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-4">
           <div>
             <p className="text-sm font-semibold text-neutral-900">Online Payment</p>
             <p className="text-sm text-neutral-500">You can pay your installment securely online.</p>

@@ -56,10 +56,10 @@ export default function CommunicationPage() {
       </div>
 
       <Card>
-        <CardContent className="flex flex-col gap-4 p-5">
-          <div className="flex min-h-11 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <CardContent className="flex flex-col gap-5 p-5 sm:pt-5">
+          <div className="flex min-h-10 flex-col gap-3 sm:flex-row sm:items-center">
             <Tabs tabs={TABS.map((t) => ({ ...t, count: counts[t.value as keyof typeof counts] }))} value={tab} onChange={setTab} className="border-b-0" />
-            <SearchInput value={query} onChange={setQuery} placeholder="Search..." containerClassName="w-full sm:w-64 sm:shrink-0" />
+            <SearchInput value={query} onChange={setQuery} placeholder="Search..." containerClassName="w-full sm:ml-auto sm:w-72 sm:shrink-0" className="h-9" />
           </div>
 
           {filtered.length === 0 ? (

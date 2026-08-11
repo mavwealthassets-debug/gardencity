@@ -40,18 +40,18 @@ export default function ProjectUpdatesPage() {
 
       <Tabs tabs={TABS} value={tab} onChange={setTab} />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((u) => (
-          <Card key={u.id} role="button" tabIndex={0} aria-label={`View update: ${u.title}`} className="cursor-pointer overflow-hidden transition hover:-translate-y-0.5 hover:shadow-popover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" onClick={() => setActive(u)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setActive(u); } }}>
-            <img src={u.images[0]} alt={u.title} className="h-40 w-full object-cover" />
-            <CardContent className="p-4">
+          <Card key={u.id} role="button" tabIndex={0} aria-label={`View update: ${u.title}`} className="flex min-h-[350px] cursor-pointer flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-popover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" onClick={() => setActive(u)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setActive(u); } }}>
+            <img src={u.images[0]} alt={u.title} className="h-44 w-full shrink-0 object-cover" />
+            <CardContent className="flex flex-1 flex-col p-4 sm:pt-4">
               <div className="flex items-center justify-between">
                 <StatusBadge tone={CATEGORY_TONE[u.category]} dot={false}>{u.category}</StatusBadge>
                 <span className="text-xs text-neutral-400">{formatDate(u.date)}</span>
               </div>
-              <p className="mt-2 text-sm font-semibold text-neutral-900">{u.title}</p>
+              <p className="mt-3 min-h-10 text-sm font-semibold leading-5 text-neutral-900">{u.title}</p>
               <p className="mt-1 line-clamp-2 text-xs text-neutral-500">{u.description}</p>
-              <p className="mt-3 text-xs font-semibold text-primary">View details</p>
+              <p className="mt-auto pt-4 text-xs font-semibold text-primary">View details</p>
             </CardContent>
           </Card>
         ))}

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MessageSquareText, Clock, CheckCircle2, AlertTriangle, Timer, Download, Plus, Send } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { MetricCard } from "@/components/common/MetricCard";
@@ -33,6 +34,7 @@ const STATUS_TABS = [
 ];
 
 export default function SupportAdminPage() {
+  const navigate = useNavigate();
   const { tickets, updateTicket, addTicketActivity } = useAppData();
   const { toast } = useToast();
   const [tab, setTab] = useState("all");
@@ -126,11 +128,11 @@ export default function SupportAdminPage() {
 
       <div className="relative flex flex-col gap-3 px-4 sm:px-6">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:mr-[332px] xl:grid-cols-5">
-          <MetricCard label="Open Tickets" value="58" icon={MessageSquareText} iconTone="green" sublabel="↗ 8 vs last 7 days" sparkline={[2,3,2,4,3,6,4,8]} />
-          <MetricCard label="In Progress" value="27" icon={Clock} iconTone="blue" sublabel="↗ 5 vs last 7 days" sparkline={[4,3,5,4,6,5,4,3]} sparklineTone="blue" />
-          <MetricCard label="Resolved" value="142" icon={CheckCircle2} iconTone="green" sublabel="↗ 18 vs last 7 days" sparkline={[2,2,3,4,3,5,4,8]} />
-          <MetricCard label="High Priority" value="12" icon={AlertTriangle} iconTone="red" sublabel="↗ 3 vs last 7 days" sparkline={[4,2,3,2,5,4,3,7]} sparklineTone="red" />
-          <MetricCard label="Avg. Response Time" value="3h 45m" icon={Timer} iconTone="purple" sublabel="↘ 18m vs last 7 days" sparkline={[2,3,3,4,5,4,6,7]} sparklineTone="purple" />
+          <MetricCard label="Open Tickets" value="58" icon={MessageSquareText} iconTone="green" sublabel="↗ 8 vs last 7 days" sparkline={[2,3,2,4,3,6,4,8]} onClick={() => navigate("/admin/support/open")} />
+          <MetricCard label="In Progress" value="27" icon={Clock} iconTone="blue" sublabel="↗ 5 vs last 7 days" sparkline={[4,3,5,4,6,5,4,3]} sparklineTone="blue" onClick={() => navigate("/admin/support/in-progress")} />
+          <MetricCard label="Resolved" value="142" icon={CheckCircle2} iconTone="green" sublabel="↗ 18 vs last 7 days" sparkline={[2,2,3,4,3,5,4,8]} onClick={() => navigate("/admin/support/resolved")} />
+          <MetricCard label="High Priority" value="12" icon={AlertTriangle} iconTone="red" sublabel="↗ 3 vs last 7 days" sparkline={[4,2,3,2,5,4,3,7]} sparklineTone="red" onClick={() => navigate("/admin/support/high-priority")} />
+          <MetricCard label="Avg. Response Time" value="3h 45m" icon={Timer} iconTone="purple" sublabel="↘ 18m vs last 7 days" sparkline={[2,3,3,4,5,4,6,7]} sparklineTone="purple" onClick={() => navigate("/admin/support/response-time")} />
         </div>
 
         <Card className="xl:mr-[332px]">

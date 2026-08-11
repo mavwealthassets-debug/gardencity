@@ -15,7 +15,9 @@ const DocumentsAdminPage = lazy(() => import("@/features/documents/DocumentsAdmi
 const FinancePage = lazy(() => import("@/features/finance/FinancePage"));
 const FinanceMetricDetailPage = lazy(() => import("@/features/finance/FinanceMetricDetailPage"));
 const RelationshipsPage = lazy(() => import("@/features/relationships/RelationshipsPage"));
+const RelationshipMetricDetailPage = lazy(() => import("@/features/relationships/RelationshipMetricDetailPage"));
 const SupportAdminPage = lazy(() => import("@/features/support/SupportAdminPage"));
+const SupportMetricDetailPage = lazy(() => import("@/features/support/SupportMetricDetailPage"));
 const ReportsPage = lazy(() => import("@/features/reports/ReportsPage"));
 const AdminSettingsPage = lazy(() => import("@/features/settings/AdminSettingsPage"));
 
@@ -52,7 +54,9 @@ export function AppRoutes() {
         <Route path="finance" element={<FinancePage />} />
         <Route path="finance/:metric" element={<FinanceMetricDetailPage />} />
         <Route path="relationships" element={<RelationshipsPage />} />
+        <Route path="relationships/:metric" element={<RelationshipMetricDetailPage />} />
         <Route path="support" element={<SupportAdminPage />} />
+        <Route path="support/:metric" element={<SupportMetricDetailPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="settings" element={<AdminSettingsPage />} />
       </Route>

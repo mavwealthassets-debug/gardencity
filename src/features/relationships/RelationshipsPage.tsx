@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Users, CalendarClock, Send, CalendarCheck, Gift, Phone, Plus, Gift as GiftIcon, Megaphone, PartyPopper, UsersRound } from "lucide-react";
 import { MetricCard } from "@/components/common/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/common/Card";
@@ -19,6 +20,7 @@ import { Pagination } from "@/components/common/Pagination";
 const REFERRALS_PAGE_SIZE = 3;
 
 export default function RelationshipsPage() {
+  const navigate = useNavigate();
   const { buyers } = useAppData();
   const { toast } = useToast();
   const activeBuyers = useMemo(() => buyers.filter((b) => b.plotId), [buyers]);
@@ -55,18 +57,18 @@ export default function RelationshipsPage() {
 
       <div className="flex flex-col gap-3 px-4 sm:px-6">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-          <MetricCard className="h-[92px]" label="Active Relationships" value="186" icon={Users} iconTone="green" sublabel="▲ 12.5% vs last month" progressPercent={100} />
-          <MetricCard className="h-[92px]" label="Follow-ups Due" value="34" icon={CalendarClock} iconTone="orange" sublabel="▲ 18.2% vs last month" progressPercent={100} />
-          <MetricCard className="h-[92px]" label="Updates Sent" value={String(stats.updatesSent)} icon={Send} iconTone="blue" sublabel="▲ 22.4% vs last month" progressPercent={100} />
-          <MetricCard className="h-[92px]" label="Meetings Scheduled" value={String(stats.meetings)} icon={CalendarCheck} iconTone="purple" sublabel="▲ 8.3% vs last month" progressPercent={100} />
-          <MetricCard className="h-[92px]" label="Referral Requests" value="19" icon={Gift} iconTone="orange" sublabel="▲ 5.6% vs last month" progressPercent={100} />
-          <MetricCard className="h-[92px]" label="Support Calls" value={String(stats.calls)} icon={Phone} iconTone="red" sublabel="▲ 11.7% vs last month" progressPercent={100} />
+          <MetricCard className="h-[92px]" label="Active Relationships" value="186" icon={Users} iconTone="green" sublabel="▲ 12.5% vs last month" progressPercent={100} onClick={() => navigate("/admin/relationships/active")} />
+          <MetricCard className="h-[92px]" label="Follow-ups Due" value="34" icon={CalendarClock} iconTone="orange" sublabel="▲ 18.2% vs last month" progressPercent={100} onClick={() => navigate("/admin/relationships/follow-ups")} />
+          <MetricCard className="h-[92px]" label="Updates Sent" value={String(stats.updatesSent)} icon={Send} iconTone="blue" sublabel="▲ 22.4% vs last month" progressPercent={100} onClick={() => navigate("/admin/relationships/updates")} />
+          <MetricCard className="h-[92px]" label="Meetings Scheduled" value={String(stats.meetings)} icon={CalendarCheck} iconTone="purple" sublabel="▲ 8.3% vs last month" progressPercent={100} onClick={() => navigate("/admin/relationships/meetings")} />
+          <MetricCard className="h-[92px]" label="Referral Requests" value="19" icon={Gift} iconTone="orange" sublabel="▲ 5.6% vs last month" progressPercent={100} onClick={() => navigate("/admin/relationships/referrals")} />
+          <MetricCard className="h-[92px]" label="Support Calls" value={String(stats.calls)} icon={Phone} iconTone="red" sublabel="▲ 11.7% vs last month" progressPercent={100} onClick={() => navigate("/admin/relationships/support-calls")} />
         </div>
 
         <div className="grid min-w-0 grid-cols-1 gap-3 xl:h-[530px] xl:grid-cols-[285px_minmax(0,1fr)_minmax(320px,0.72fr)]">
           <div className="flex min-h-0 flex-col gap-2">
             <Card className="h-[290px] overflow-hidden">
-              <CardHeader className="px-4 py-3"><CardTitle>Buyer Profile</CardTitle><Button variant="link" size="sm">View Full Profile</Button></CardHeader>
+              <CardHeader className="px-4 py-3"><CardTitle>Buyer Profile</CardTitle><Button variant="link" size="sm" onClick={() => selected && navigate(`/admin/buyers/${selected.id}`)}>View Full Profile</Button></CardHeader>
               <CardContent className="space-y-3 px-4 pb-4 pt-1 sm:px-4 sm:pb-4 sm:pt-1">
                 <div className="flex min-h-[64px] items-center gap-3">
                   <Avatar name={selected?.name ?? "Buyer"} size="md" />
@@ -107,7 +109,7 @@ export default function RelationshipsPage() {
             )}
 
             <Card className="min-h-0 flex-1 overflow-hidden">
-              <CardHeader className="py-3"><CardTitle>Communication Timeline</CardTitle><Button variant="link" size="sm">View All</Button></CardHeader>
+              <CardHeader className="py-3"><CardTitle>Communication Timeline</CardTitle><Button variant="link" size="sm" onClick={() => navigate("/admin/relationships/updates")}>View All</Button></CardHeader>
               <CardContent className="px-4 pb-3">
                 {timeline.length === 0 ? (
                   <EmptyState title="No communication history" className="py-8" />
@@ -132,7 +134,7 @@ export default function RelationshipsPage() {
 
           <div className="h-[410px] min-h-0">
             <Card className="h-full overflow-hidden">
-              <CardHeader className="py-3"><CardTitle>Customer Engagement</CardTitle><Button variant="link" size="sm">Create New</Button></CardHeader>
+              <CardHeader className="py-3"><CardTitle>Customer Engagement</CardTitle><Button variant="link" size="sm" onClick={() => setShowLog(true)}>Create New</Button></CardHeader>
               <CardContent className="flex flex-col gap-0 px-4 pb-3">
                 <EngagementRow icon={PartyPopper} title="Festival Greetings" desc="Send personalized festival wishes to buyers." action="Send Wishes" onClick={() => toast({ variant: "success", title: "Festive wishes sent" })} />
                 <EngagementRow icon={Megaphone} title="Project Updates" desc="Share latest development photos and progress." action="Send Update" onClick={() => toast({ variant: "success", title: "Project update sent to buyers" })} />
@@ -146,7 +148,7 @@ export default function RelationshipsPage() {
         <Card className="min-h-[260px] min-w-0 xl:-mt-[88px] xl:ml-[297px]">
           <CardHeader className="py-2.5">
             <CardTitle>Recent Referrals</CardTitle>
-            <Button variant="link" size="sm" onClick={() => toast({ variant: "info", title: "Opening all referrals" })}>View All Referrals</Button>
+            <Button variant="link" size="sm" onClick={() => navigate("/admin/relationships/referrals")}>View All Referrals</Button>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="overflow-x-auto">

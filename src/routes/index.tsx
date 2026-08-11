@@ -13,6 +13,7 @@ const BuyersListPage = lazy(() => import("@/features/buyers/BuyersListPage"));
 const BuyerProfilePage = lazy(() => import("@/features/buyers/BuyerProfilePage"));
 const DocumentsAdminPage = lazy(() => import("@/features/documents/DocumentsAdminPage"));
 const FinancePage = lazy(() => import("@/features/finance/FinancePage"));
+const FinanceMetricDetailPage = lazy(() => import("@/features/finance/FinanceMetricDetailPage"));
 const RelationshipsPage = lazy(() => import("@/features/relationships/RelationshipsPage"));
 const SupportAdminPage = lazy(() => import("@/features/support/SupportAdminPage"));
 const ReportsPage = lazy(() => import("@/features/reports/ReportsPage"));
@@ -49,6 +50,7 @@ export function AppRoutes() {
         <Route path="buyers/:buyerId" element={<BuyerProfilePage />} />
         <Route path="documents" element={<DocumentsAdminPage />} />
         <Route path="finance" element={<FinancePage />} />
+        <Route path="finance/:metric" element={<FinanceMetricDetailPage />} />
         <Route path="relationships" element={<RelationshipsPage />} />
         <Route path="support" element={<SupportAdminPage />} />
         <Route path="reports" element={<ReportsPage />} />

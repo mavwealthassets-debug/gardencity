@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { IndianRupee, Wallet, ReceiptText, AlarmClockOff, Download, Plus, Undo2, Building2, Users, Send } from "lucide-react";
 import { MetricCard } from "@/components/common/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/common/Card";
@@ -32,6 +33,7 @@ const STATUS_TABS = [
 const PAGE_SIZE = 5;
 
 export default function FinancePage() {
+  const navigate = useNavigate();
   const { plots, installments, transactions, recordPayment } = useAppData();
   const { toast } = useToast();
   const [statusTab, setStatusTab] = useState("all");
@@ -105,12 +107,12 @@ export default function FinancePage() {
 
       <div className="flex flex-col gap-3 px-4 sm:px-6">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
-          <MetricCard label="Total Sales Value" value={formatINRCompact(stats.totalSales)} icon={IndianRupee} iconTone="green" trend={{value:12.6,label:"vs Apr ’25"}} sparkline={[3,4,3,5,4,7,6,9]} />
-          <MetricCard label="Amount Collected" value={formatINRCompact(stats.collected)} icon={Wallet} iconTone="teal" trend={{value:15.7,label:"vs Apr ’25"}} sparkline={[2,3,2,4,3,7,6,9]} />
-          <MetricCard label="Outstanding" value={formatINRCompact(stats.outstanding)} icon={ReceiptText} iconTone="orange" trend={{value:9.2,label:"vs Apr ’25"}} sparkline={[4,3,5,4,7,6,9,8]} />
-          <MetricCard label="Overdue Payments" value={formatINRCompact(stats.overdue)} icon={AlarmClockOff} iconTone="red" trend={{value:6.3,label:"vs Apr ’25"}} sparkline={[2,3,4,3,6,5,8,7]} sparklineTone="red" />
-          <MetricCard label="Loan Cases" value="63" icon={Building2} iconTone="purple" trend={{value:3,label:"vs Apr ’25"}} sparkline={[2,2,3,4,4,5,6,8]} sparklineTone="purple" />
-          <MetricCard label="Registrations Pending" value="24" icon={Users} iconTone="blue" trend={{value:3,label:"vs Apr ’25"}} sparkline={[4,3,4,5,4,6,5,8]} sparklineTone="blue" />
+          <MetricCard label="Total Sales Value" value={formatINRCompact(stats.totalSales)} icon={IndianRupee} iconTone="green" trend={{value:12.6,label:"vs Apr ’25"}} sparkline={[3,4,3,5,4,7,6,9]} onClick={() => navigate("/admin/finance/total-sales")} />
+          <MetricCard label="Amount Collected" value={formatINRCompact(stats.collected)} icon={Wallet} iconTone="teal" trend={{value:15.7,label:"vs Apr ’25"}} sparkline={[2,3,2,4,3,7,6,9]} onClick={() => navigate("/admin/finance/collected")} />
+          <MetricCard label="Outstanding" value={formatINRCompact(stats.outstanding)} icon={ReceiptText} iconTone="orange" trend={{value:9.2,label:"vs Apr ’25"}} sparkline={[4,3,5,4,7,6,9,8]} onClick={() => navigate("/admin/finance/outstanding")} />
+          <MetricCard label="Overdue Payments" value={formatINRCompact(stats.overdue)} icon={AlarmClockOff} iconTone="red" trend={{value:6.3,label:"vs Apr ’25"}} sparkline={[2,3,4,3,6,5,8,7]} sparklineTone="red" onClick={() => navigate("/admin/finance/overdue")} />
+          <MetricCard label="Loan Cases" value="63" icon={Building2} iconTone="purple" trend={{value:3,label:"vs Apr ’25"}} sparkline={[2,2,3,4,4,5,6,8]} sparklineTone="purple" onClick={() => navigate("/admin/finance/loans")} />
+          <MetricCard label="Registrations Pending" value="24" icon={Users} iconTone="blue" trend={{value:3,label:"vs Apr ’25"}} sparkline={[4,3,4,5,4,6,5,8]} sparklineTone="blue" onClick={() => navigate("/admin/finance/registrations")} />
         </div>
 
         <div className="relative grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,.95fr)] xl:pr-[272px]">

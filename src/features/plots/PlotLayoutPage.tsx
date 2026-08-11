@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Download, Minus, Plus, RotateCcw, Tag, CalendarCheck, CheckCircle2, Lock, SlidersHorizontal, MapPinned } from "lucide-react";
+import { Download, Expand, Minus, Plus, RotateCcw, Tag, CalendarCheck, CheckCircle2, Lock, SlidersHorizontal, MapPinned, X } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { MetricCard } from "@/components/common/MetricCard";
 import { Select } from "@/components/common/Field";
@@ -37,6 +37,8 @@ export default function PlotLayoutPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [zoom, setZoom] = useState(1);
   const [activePlot, setActivePlot] = useState<Plot | null>(null);
+  const [showMasterPlan, setShowMasterPlan] = useState(false);
+  const [masterPlanZoom, setMasterPlanZoom] = useState(1);
   const isDesktopPanel = useMediaQuery("(min-width: 1280px)");
 
   const stats = useMemo(() => ({
@@ -92,6 +94,17 @@ export default function PlotLayoutPage() {
               <button type="button" onClick={() => setZoom((z) => Math.max(0.6, z - 0.15))} aria-label="Zoom out" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border-strong bg-surface text-neutral-600 shadow-card hover:bg-surface-muted"><Minus size={16} /></button>
               <button type="button" onClick={() => setZoom(1)} aria-label="Reset zoom" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border-strong bg-surface text-neutral-600 shadow-card hover:bg-surface-muted"><RotateCcw size={14} /></button>
             </div>
+            <button
+              type="button"
+              onClick={() => { setMasterPlanZoom(1); setShowMasterPlan(true); }}
+              className="absolute right-4 top-4 z-10 w-40 overflow-hidden rounded-xl border border-border-strong bg-white p-1.5 text-left shadow-popover transition-transform hover:scale-[1.02] sm:w-52"
+              aria-label="Open actual Garden City master plan"
+            >
+              <span className="mb-1 flex items-center justify-between px-1 text-[10px] font-semibold text-neutral-700">
+                Actual Master Plan <Expand size={12} className="text-brand-700" />
+              </span>
+              <img src="/garden-city-master-plan.png" alt="Garden City Naugaon actual master plan preview" className="h-24 w-full rounded-lg bg-surface-subtle object-contain sm:h-28" />
+            </button>
             <div className="overflow-auto rounded-lg bg-surface-subtle py-4">
               <div className="origin-top-left px-16 transition-transform" style={{ transform: `scale(${zoom})` }}>
                 <div className="flex min-w-max flex-col gap-8">
@@ -122,6 +135,30 @@ export default function PlotLayoutPage() {
         </div>
       </div>
       {!isDesktopPanel && <PlotDetailDrawer plot={activePlot} onClose={() => setActivePlot(null)} />}
+      {showMasterPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/75 p-4" role="dialog" aria-modal="true" aria-label="Garden City actual master plan">
+          <button type="button" onClick={() => setShowMasterPlan(false)} className="absolute inset-0" aria-label="Close master plan" />
+          <div className="relative z-10 flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white p-3 shadow-popover">
+            <div className="mb-2 flex items-center justify-between gap-3 px-1">
+              <div><h2 className="text-base font-semibold text-neutral-900">Garden City Actual Master Plan</h2><p className="text-xs text-neutral-500">Reference layout showing roads, parks, plots, and common areas.</p></div>
+              <div className="flex items-center gap-1.5">
+                <button type="button" onClick={() => setMasterPlanZoom((z) => Math.max(1, z - 0.25))} aria-label="Zoom out master plan" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-white text-neutral-600 hover:bg-surface-muted"><Minus size={16} /></button>
+                <button type="button" onClick={() => setMasterPlanZoom(1)} className="h-9 min-w-14 rounded-lg border border-border bg-white px-2 text-xs font-semibold text-neutral-600 hover:bg-surface-muted" aria-label="Reset master plan zoom">{Math.round(masterPlanZoom * 100)}%</button>
+                <button type="button" onClick={() => setMasterPlanZoom((z) => Math.min(2.5, z + 0.25))} aria-label="Zoom in master plan" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-white text-neutral-600 hover:bg-surface-muted"><Plus size={16} /></button>
+                <button type="button" onClick={() => setShowMasterPlan(false)} aria-label="Close" className="ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-muted text-neutral-600 hover:bg-border"><X size={18} /></button>
+              </div>
+            </div>
+            <div className="min-h-0 flex-1 overflow-auto rounded-xl bg-surface-subtle">
+              <img
+                src="/garden-city-master-plan.png"
+                alt="Detailed Garden City Naugaon master plan"
+                className="mx-auto block h-auto max-w-none object-contain transition-[width] duration-150"
+                style={{ width: `${masterPlanZoom * 100}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

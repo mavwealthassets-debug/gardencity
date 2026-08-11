@@ -38,6 +38,7 @@ type Action =
   | { type: "SET_PLOT_STATUS"; plotId: string; status: PlotStatus; buyerId?: string }
   | { type: "UPLOAD_DOCUMENT"; document: DocumentItem }
   | { type: "SET_DOCUMENT_STATUS"; documentId: string; status: DocumentStatus; verifiedBy?: string; rejectionReason?: string }
+  | { type: "REQUEST_DOCUMENT_RESUBMISSION"; documentId: string; requestedBy: string }
   | { type: "RECORD_PAYMENT"; installmentId: string; amount: number; mode: PaymentTransaction["mode"] }
   | { type: "MARK_NOTIFICATION_READ"; id: string }
   | { type: "MARK_ALL_NOTIFICATIONS_READ"; userId: string }
@@ -76,6 +77,36 @@ function reducer(state: AppState, action: Action): AppState {
             : d
         ),
       };
+    case "REQUEST_DOCUMENT_RESUBMISSION": {
+      const document = state.documents.find((d) => d.id === action.documentId);
+      if (!document) return state;
+      const notification: NotificationItem = {
+        id: `notification-document-${document.id}-${Date.now()}`,
+        userId: document.buyerId,
+        category: "Document",
+        title: "Document resubmission required",
+        body: `${document.name} was rejected${document.rejectionReason ? `: ${document.rejectionReason}` : ". Please upload a corrected copy."}`,
+        date: new Date().toISOString(),
+        read: false,
+        link: "/buyer/documents",
+      };
+      return {
+        ...state,
+        documents: state.documents.map((d) =>
+          d.id === action.documentId
+            ? {
+                ...d,
+                status: "Resubmission Required",
+                history: [
+                  ...d.history,
+                  { version: d.version, date: new Date().toISOString().slice(0, 10), action: "Resubmission requested", by: action.requestedBy },
+                ],
+              }
+            : d
+        ),
+        notifications: [notification, ...state.notifications],
+      };
+    }
     case "RECORD_PAYMENT": {
       const installment = state.installments.find((i) => i.id === action.installmentId);
       if (!installment) return state;
@@ -147,6 +178,7 @@ interface AppDataContextValue extends AppState {
   uploadDocument: (doc: DocumentItem) => void;
   verifyDocument: (documentId: string, verifiedBy: string) => void;
   rejectDocument: (documentId: string, verifiedBy: string, reason: string) => void;
+  requestDocumentResubmission: (documentId: string, requestedBy: string) => void;
   recordPayment: (installmentId: string, amount: number, mode: PaymentTransaction["mode"]) => void;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: (userId: string) => void;
@@ -177,6 +209,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       dispatch({ type: "SET_DOCUMENT_STATUS", documentId, status: "Rejected", verifiedBy, rejectionReason: reason }),
     []
   );
+  const requestDocumentResubmission = useCallback(
+    (documentId: string, requestedBy: string) => dispatch({ type: "REQUEST_DOCUMENT_RESUBMISSION", documentId, requestedBy }),
+    []
+  );
   const recordPayment = useCallback(
     (installmentId: string, amount: number, mode: PaymentTransaction["mode"]) =>
       dispatch({ type: "RECORD_PAYMENT", installmentId, amount, mode }),
@@ -202,6 +238,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       uploadDocument,
       verifyDocument,
       rejectDocument,
+      requestDocumentResubmission,
       recordPayment,
       markNotificationRead,
       markAllNotificationsRead,
@@ -211,7 +248,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       addReferral,
       updateBuyer,
     }),
-    [state, holdPlot, bookPlot, uploadDocument, verifyDocument, rejectDocument, recordPayment, markNotificationRead, markAllNotificationsRead, createTicket, updateTicket, addTicketActivity, addReferral, updateBuyer]
+    [state, holdPlot, bookPlot, uploadDocument, verifyDocument, rejectDocument, requestDocumentResubmission, recordPayment, markNotificationRead, markAllNotificationsRead, createTicket, updateTicket, addTicketActivity, addReferral, updateBuyer]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

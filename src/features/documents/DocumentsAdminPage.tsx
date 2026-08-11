@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Clock, ShieldCheck, XCircle, CalendarClock, Upload, Eye, Check, X as XIcon } from "lucide-react";
+import { Clock, ShieldCheck, XCircle, CalendarClock, Upload, Eye, Check, Send, X as XIcon } from "lucide-react";
 import { MetricCard } from "@/components/common/MetricCard";
 import { SearchInput } from "@/components/common/SearchInput";
 import { Select, Textarea, Select as FormSelect } from "@/components/common/Field";
@@ -28,7 +28,7 @@ const CATEGORY_TABS = [
 const PAGE_SIZE = 8;
 
 export default function DocumentsAdminPage() {
-  const { documents, verifyDocument, rejectDocument, uploadDocument } = useAppData();
+  const { documents, verifyDocument, rejectDocument, requestDocumentResubmission, uploadDocument } = useAppData();
   const { toast } = useToast();
 
   const [category, setCategory] = useState("all");
@@ -91,6 +91,12 @@ export default function DocumentsAdminPage() {
     setActive(null);
     setRejectReason("");
   }
+  function handleResubmissionRequest() {
+    if (!active) return;
+    requestDocumentResubmission(active.id, "Admin User");
+    toast({ variant: "success", title: "Resubmission request sent", description: `${active.name}: the buyer has been notified to upload a corrected document.` });
+    setActive(null);
+  }
   function handleUpload() {
     const doc: DocumentItem = {
       id: `doc-new-${Date.now()}`,
@@ -112,16 +118,23 @@ export default function DocumentsAdminPage() {
     setShowUpload(false);
   }
 
+  function filterFromMetric(status: string) {
+    setStatusFilter(status);
+    setCategory("all");
+    setQuery("");
+    setPage(1);
+  }
+
   return (
     <div className="flex flex-col gap-3 px-4 py-3 sm:px-6">
       <div><h1 className="text-lg font-bold text-neutral-900">Documents</h1><p className="text-xs text-neutral-500">Manage and verify buyer KYC, financial, property and legal documents.</p></div>
       <div className="grid gap-3" style={{ gridTemplateColumns: "minmax(0,1fr) 330px" }}>
       <div className="flex min-w-0 flex-col gap-3">
         <div className="grid grid-cols-4 gap-2">
-          <MetricCard className="h-[104px]" label="Pending Verification" value={String(stats.pending)} icon={Clock} iconTone="orange" sublabel={`${((stats.pending / documents.length) * 100).toFixed(0)}% of total documents`} progressPercent={(stats.pending / documents.length) * 100} />
-          <MetricCard className="h-[104px]" label="Verified" value={String(stats.verified)} icon={ShieldCheck} iconTone="green" sublabel={`${((stats.verified / documents.length) * 100).toFixed(0)}% of total documents`} progressPercent={(stats.verified / documents.length) * 100} />
-          <MetricCard className="h-[104px]" label="Rejected" value={String(stats.rejected)} icon={XCircle} iconTone="red" sublabel={`${((stats.rejected / documents.length) * 100).toFixed(0)}% of total documents`} progressPercent={(stats.rejected / documents.length) * 100} />
-          <MetricCard className="h-[104px]" label="Expiring Soon (30 days)" value={String(stats.resubmission)} icon={CalendarClock} iconTone="orange" sublabel={`${((stats.resubmission / documents.length) * 100).toFixed(0)}% of total documents`} progressPercent={(stats.resubmission / documents.length) * 100} />
+          <MetricCard className={`h-[104px] ${statusFilter === "Pending" ? "ring-2 ring-status-booked" : ""}`} label="Pending Verification" value={String(stats.pending)} icon={Clock} iconTone="orange" sublabel={`${((stats.pending / documents.length) * 100).toFixed(0)}% of total documents`} progressPercent={(stats.pending / documents.length) * 100} onClick={() => filterFromMetric("Pending")} />
+          <MetricCard className={`h-[104px] ${statusFilter === "Verified" ? "ring-2 ring-status-available" : ""}`} label="Verified" value={String(stats.verified)} icon={ShieldCheck} iconTone="green" sublabel={`${((stats.verified / documents.length) * 100).toFixed(0)}% of total documents`} progressPercent={(stats.verified / documents.length) * 100} onClick={() => filterFromMetric("Verified")} />
+          <MetricCard className={`h-[104px] ${statusFilter === "Rejected" ? "ring-2 ring-status-sold" : ""}`} label="Rejected" value={String(stats.rejected)} icon={XCircle} iconTone="red" sublabel={`${((stats.rejected / documents.length) * 100).toFixed(0)}% of total documents`} progressPercent={(stats.rejected / documents.length) * 100} onClick={() => filterFromMetric("Rejected")} />
+          <MetricCard className={`h-[104px] ${statusFilter === "Resubmission Required" ? "ring-2 ring-status-booked" : ""}`} label="Expiring Soon (30 days)" value={String(stats.resubmission)} icon={CalendarClock} iconTone="orange" sublabel={`${((stats.resubmission / documents.length) * 100).toFixed(0)}% of total documents`} progressPercent={(stats.resubmission / documents.length) * 100} onClick={() => filterFromMetric("Resubmission Required")} />
         </div>
 
         <Tabs tabs={CATEGORY_TABS.map((t) => ({ ...t, count: counts[t.value as keyof typeof counts] }))} value={category} onChange={(value) => { setCategory(value); setPage(1); }} />
@@ -191,7 +204,9 @@ export default function DocumentsAdminPage() {
             <div><p className="mb-2 text-xs font-semibold text-neutral-800">Document Information</p><dl className="grid grid-cols-2 gap-2 text-xs"><div><dt className="text-neutral-400">Category</dt><dd>{active.category}</dd></div><div><dt className="text-neutral-400">Buyer</dt><dd>{getBuyerById(active.buyerId)?.name}</dd></div><div><dt className="text-neutral-400">Uploaded By</dt><dd>{active.uploadedBy}</dd></div><div><dt className="text-neutral-400">Upload Date</dt><dd>{formatDate(active.uploadDate)}</dd></div></dl></div>
             <div><p className="mb-2 text-xs font-semibold uppercase text-neutral-400">Version History</p>{active.history.map((h, i) => <p key={i} className="flex justify-between text-xs text-neutral-600"><span>v{h.version} · {h.action} by {h.by}</span><span>{formatDate(h.date)}</span></p>)}</div>
           </div>
-          {active.status !== "Verified" && <div className="flex gap-2 border-t border-border p-3"><Button variant="dangerOutline" size="sm" className="flex-1" onClick={() => setShowReject(true)}><XIcon size={14} /> Reject</Button><Button size="sm" className="flex-1" onClick={() => handleVerify(active)}><Check size={14} /> Verify</Button></div>}
+          {(active.status === "Rejected" || active.status === "Resubmission Required") ? (
+            <div className="border-t border-border p-3"><Button size="sm" className="w-full" onClick={handleResubmissionRequest}><Send size={14} /> {active.status === "Rejected" ? "Send Resubmission Request" : "Resend Notification"}</Button></div>
+          ) : active.status !== "Verified" && <div className="flex gap-2 border-t border-border p-3"><Button variant="dangerOutline" size="sm" className="flex-1" onClick={() => setShowReject(true)}><XIcon size={14} /> Reject</Button><Button size="sm" className="flex-1" onClick={() => handleVerify(active)}><Check size={14} /> Verify</Button></div>}
         </>}
       </aside>
       </div>
@@ -202,7 +217,11 @@ export default function DocumentsAdminPage() {
         title={active?.name ?? ""}
         subtitle={active && <StatusBadge tone={docStatusTone(active.status)} dot={false}>{active.status}</StatusBadge>}
         footer={
-          active && active.status !== "Verified" ? (
+          active && (active.status === "Rejected" || active.status === "Resubmission Required") ? (
+            <Button className="flex-1" onClick={handleResubmissionRequest}>
+              <Send size={15} /> {active.status === "Rejected" ? "Send Resubmission Request" : "Resend Notification"}
+            </Button>
+          ) : active && active.status !== "Verified" ? (
             <>
               <Button variant="dangerOutline" className="flex-1" onClick={() => setShowReject(true)}>
                 <XIcon size={15} /> Reject Document

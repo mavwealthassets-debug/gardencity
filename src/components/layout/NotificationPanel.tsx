@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Bell, Calendar, CheckCheck, FileText, Headset, type LucideIcon, MessageSquare, Wallet } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Dropdown } from "@/components/common/Dropdown";
 import { EmptyState } from "@/components/common/EmptyState";
 import { formatRelativeTime } from "@/lib/format";
@@ -23,7 +24,10 @@ interface NotificationPanelProps {
 }
 
 export function NotificationPanel({ notifications, onMarkRead, onMarkAllRead }: NotificationPanelProps) {
+  const [filter, setFilter] = useState<"all" | "unread">("all");
+  const navigate = useNavigate();
   const unreadCount = notifications.filter((n) => !n.read).length;
+  const visibleNotifications = filter === "unread" ? notifications.filter((n) => !n.read) : notifications;
 
   return (
     <Dropdown
@@ -60,11 +64,18 @@ export function NotificationPanel({ notifications, onMarkRead, onMarkAllRead }: 
           </button>
         )}
       </div>
+      <div className="flex gap-1 border-b border-border px-4 py-2">
+        {(["all", "unread"] as const).map((value) => (
+          <button key={value} type="button" onClick={(event) => { event.stopPropagation(); setFilter(value); }} className={cn("rounded-md px-2.5 py-1 text-xs font-medium capitalize", filter === value ? "bg-brand-50 text-brand-700" : "text-neutral-500 hover:bg-surface-muted")}>
+            {value}{value === "unread" ? ` (${unreadCount})` : ""}
+          </button>
+        ))}
+      </div>
       <div className="max-h-[380px] overflow-y-auto">
-        {notifications.length === 0 ? (
-          <EmptyState title="No notifications" description="You're all caught up." className="py-8" />
+        {visibleNotifications.length === 0 ? (
+          <EmptyState title={filter === "unread" ? "No unread notifications" : "No notifications"} description="You're all caught up." className="py-8" />
         ) : (
-          notifications.slice(0, 8).map((n) => {
+          visibleNotifications.slice(0, 8).map((n) => {
             const Icon = CATEGORY_ICON[n.category] ?? Bell;
             const content = (
               <div className={cn("flex gap-3 px-4 py-3 hover:bg-surface-subtle", !n.read && "bg-brand-50/50")}>
@@ -83,10 +94,10 @@ export function NotificationPanel({ notifications, onMarkRead, onMarkAllRead }: 
               <button
                 key={n.id}
                 type="button"
-                onClick={() => onMarkRead(n.id)}
+                onClick={() => { onMarkRead(n.id); if (n.link) navigate(n.link); }}
                 className="block w-full border-b border-border text-left last:border-0"
               >
-                {n.link ? <Link to={n.link}>{content}</Link> : content}
+                {content}
               </button>
             );
           })

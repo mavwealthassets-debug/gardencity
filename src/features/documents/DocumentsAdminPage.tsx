@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Clock, ShieldCheck, XCircle, CalendarClock, Upload, Eye, Check, Send, X as XIcon } from "lucide-react";
+import { Clock, ShieldCheck, XCircle, CalendarClock, Upload, Eye, Check, Send, X as XIcon, MoreVertical, Download, History, Replace } from "lucide-react";
 import { MetricCard } from "@/components/common/MetricCard";
 import { SearchInput } from "@/components/common/SearchInput";
 import { Textarea, Select as FormSelect } from "@/components/common/Field";
@@ -17,6 +17,8 @@ import { formatDate } from "@/lib/format";
 import { getBuyerById } from "@/data/buyers";
 import type { DocumentCategory, DocumentItem } from "@/types";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { Dropdown, DropdownItem, DropdownSeparator } from "@/components/common/Dropdown";
+import { downloadTextPdf } from "@/lib/download";
 
 const CATEGORY_TABS = [
   { value: "all", label: "All Documents" },
@@ -152,12 +154,22 @@ export default function DocumentsAdminPage() {
     setPage(1);
   }
 
+  function downloadSummary(doc: DocumentItem) {
+    const buyer = getBuyerById(doc.buyerId);
+    downloadTextPdf(`${doc.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-summary.pdf`, `${doc.name} Summary`, [
+      `Buyer: ${buyer?.name ?? "—"}`, `Plot: ${doc.plotId ?? "—"}`, `Category: ${doc.category}`, `Status: ${doc.status}`,
+      `Uploaded: ${formatDate(doc.uploadDate)}`, `Uploaded by: ${doc.uploadedBy}`, `Version: ${doc.version}`,
+      `Verified by: ${doc.verifiedBy ?? "—"}`, `Rejection reason: ${doc.rejectionReason ?? "—"}`,
+    ]);
+    toast({ variant: "success", title: "Summary downloaded", description: `${doc.name} summary saved as PDF.` });
+  }
+
   return (
     <div className="flex flex-col gap-3 px-4 py-3 sm:px-6">
       <div><h1 className="text-lg font-bold text-neutral-900">Documents</h1><p className="text-xs text-neutral-500">Manage and verify buyer KYC, financial, property and legal documents.</p></div>
-      <div className="grid gap-3" style={{ gridTemplateColumns: "minmax(0,1fr) 330px" }}>
+      <div className="grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_330px]">
       <div className="flex min-w-0 flex-col gap-3">
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <MetricCard className={`h-[104px] ${statusFilter === "Pending" ? "ring-2 ring-status-booked" : ""}`} label="Pending Verification" value={String(stats.pending)} icon={Clock} iconTone="orange" sublabel={`${((stats.pending / documents.length) * 100).toFixed(0)}% of total documents`} progressPercent={(stats.pending / documents.length) * 100} onClick={() => filterFromMetric("Pending")} />
           <MetricCard className={`h-[104px] ${statusFilter === "Verified" ? "ring-2 ring-status-available" : ""}`} label="Verified" value={String(stats.verified)} icon={ShieldCheck} iconTone="green" sublabel={`${((stats.verified / documents.length) * 100).toFixed(0)}% of total documents`} progressPercent={(stats.verified / documents.length) * 100} onClick={() => filterFromMetric("Verified")} />
           <MetricCard className={`h-[104px] ${statusFilter === "Rejected" ? "ring-2 ring-status-sold" : ""}`} label="Rejected" value={String(stats.rejected)} icon={XCircle} iconTone="red" sublabel={`${((stats.rejected / documents.length) * 100).toFixed(0)}% of total documents`} progressPercent={(stats.rejected / documents.length) * 100} onClick={() => filterFromMetric("Rejected")} />
@@ -222,11 +234,18 @@ export default function DocumentsAdminPage() {
                       <TD>{d.category}</TD>
                       <TD>{d.uploadedBy}</TD>
                       <TD>{formatDate(d.uploadDate)}</TD>
-                      <TD><StatusBadge tone={docStatusTone(d.status)} dot={false}>{d.status}</StatusBadge></TD>
+                      <TD><span title={d.status === "Pending" ? "Awaiting admin verification" : d.status === "Verified" ? `Verified by ${d.verifiedBy ?? "Admin User"}` : d.rejectionReason ?? d.status}><StatusBadge tone={docStatusTone(d.status)} dot={false}>{d.status}</StatusBadge></span></TD>
                       <TD onClick={(e) => e.stopPropagation()}>
-                        <button onClick={() => setActive(d)} aria-label={`View ${d.name}`} className="rounded p-1.5 text-neutral-400 hover:bg-surface-muted hover:text-neutral-700">
-                          <Eye size={15} />
-                        </button>
+                        <Dropdown trigger={({ onClick }) => <button type="button" onClick={onClick} aria-label={`Actions for ${d.name}`} className="rounded p-1.5 text-neutral-400 hover:bg-surface-muted hover:text-neutral-700"><MoreVertical size={15} /></button>}>
+                          <DropdownItem onClick={() => setActive(d)}><Eye size={14} /> Preview</DropdownItem>
+                          <DropdownItem onClick={() => toast({ variant: "warning", title: "Original unavailable", description: "This demo record does not include a stored original file." })}><Download size={14} /> Download Original</DropdownItem>
+                          <DropdownItem onClick={() => downloadSummary(d)}><Download size={14} /> Download Summary</DropdownItem>
+                          <DropdownSeparator />
+                          {d.status !== "Verified" && <DropdownItem onClick={() => handleVerify(d)}><Check size={14} /> Verify</DropdownItem>}
+                          {d.status !== "Rejected" && <DropdownItem onClick={() => { setActive(d); setShowReject(true); }}><XCircle size={14} /> Reject</DropdownItem>}
+                          <DropdownItem onClick={() => { setActive(d); setShowUpload(true); }}><Replace size={14} /> Replace</DropdownItem>
+                          <DropdownItem onClick={() => setActive(d)}><History size={14} /> Version & Audit History</DropdownItem>
+                        </Dropdown>
                       </TD>
                     </TR>
                   );

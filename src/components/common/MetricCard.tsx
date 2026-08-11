@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ArrowDownRight, ArrowUpRight, type LucideIcon } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Info, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AreaSparkline } from "@/components/charts/AreaSparkline";
 
@@ -14,6 +14,7 @@ interface MetricCardProps {
   sparklineTone?: "green" | "blue" | "orange" | "red" | "purple";
   progressPercent?: number;
   onClick?: () => void;
+  info?: string;
   className?: string;
 }
 
@@ -38,6 +39,7 @@ export function MetricCard({
   sparklineTone = "green",
   progressPercent,
   onClick,
+  info,
   className,
 }: MetricCardProps) {
   const Wrapper = onClick ? "button" : "div";
@@ -58,6 +60,11 @@ export function MetricCard({
           </span>
         )}
         <span className="min-w-0 text-xs leading-tight text-neutral-500">{label}</span>
+        {info && (
+          <span title={info} aria-label={`${label}: ${info}`} className="ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-neutral-400 hover:bg-surface-muted hover:text-neutral-700" onClick={(event) => event.stopPropagation()}>
+            <Info size={12} aria-hidden="true" />
+          </span>
+        )}
       </div>
       <div className="min-w-0">
         <span className="block truncate text-xl font-bold leading-none tracking-tight whitespace-nowrap text-neutral-900">{value}</span>

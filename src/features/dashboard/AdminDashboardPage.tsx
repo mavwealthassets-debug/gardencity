@@ -114,9 +114,9 @@ export default function AdminDashboardPage() {
           <MetricCard label="Available" value={String(stats.available)} icon={Tag} iconTone="blue" progressPercent={(stats.available / plots.length) * 100} onClick={() => navigate("/admin/plot-inventory?status=available")} />
           <MetricCard label="Booked" value={String(stats.booked)} icon={CalendarCheck} iconTone="orange" progressPercent={(stats.booked / plots.length) * 100} onClick={() => navigate("/admin/plot-inventory?status=booked")} />
           <MetricCard label="Sold" value={String(stats.sold)} icon={CheckCircle2} iconTone="green" progressPercent={(stats.sold / plots.length) * 100} onClick={() => navigate("/admin/plot-inventory?status=sold")} />
-          <MetricCard label="Total Sales Value" value={formatINRCompact(stats.totalSalesValue)} icon={IndianRupee} iconTone="purple" sublabel="All time" sparkline={salesSpark} sparklineTone="purple" onClick={() => navigate("/admin/finance")} />
-          <MetricCard label="Amount Collected" value={formatINRCompact(stats.amountCollected)} icon={Wallet} iconTone="teal" sublabel={`${((stats.amountCollected / stats.totalSalesValue) * 100).toFixed(1)}% of sales value`} sparkline={collectionsSpark} sparklineTone="green" onClick={() => navigate("/admin/finance")} />
-          <MetricCard label="Outstanding" value={formatINRCompact(stats.outstanding)} icon={ReceiptText} iconTone="red" sublabel={`${((stats.outstanding / stats.totalSalesValue) * 100).toFixed(1)}% of sales value`} sparkline={outstandingSpark} sparklineTone="red" onClick={() => navigate("/admin/finance")} />
+          <MetricCard label="Total Sales Value" value={formatINRCompact(stats.totalSalesValue)} icon={IndianRupee} iconTone="purple" sublabel="All time" sparkline={salesSpark} sparklineTone="purple" info="Sum of final prices for sold and booked plots." onClick={() => navigate("/admin/finance/total-sales")} />
+          <MetricCard label="Amount Collected" value={formatINRCompact(stats.amountCollected)} icon={Wallet} iconTone="teal" sublabel={`${((stats.amountCollected / stats.totalSalesValue) * 100).toFixed(1)}% of sales value`} sparkline={collectionsSpark} sparklineTone="green" info="Payments recorded against sold and booked plots." onClick={() => navigate("/admin/finance/collected")} />
+          <MetricCard label="Outstanding" value={formatINRCompact(stats.outstanding)} icon={ReceiptText} iconTone="red" sublabel={`${((stats.outstanding / stats.totalSalesValue) * 100).toFixed(1)}% of sales value`} sparkline={outstandingSpark} sparklineTone="red" info="Total sales value less the amount collected." onClick={() => navigate("/admin/finance/outstanding")} />
           <MetricCard label="Active Buyers" value={String(stats.activeBuyers)} icon={Users} iconTone="blue" sublabel="Engaged buyers" sparkline={collectionsSpark.map((v) => v + 1)} sparklineTone="blue" onClick={() => navigate("/admin/buyers?status=Active")} />
         </div>
 
@@ -165,12 +165,12 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 xl:h-[264px] xl:grid-cols-[1.25fr_1.2fr_0.85fr_1.05fr_1fr]">
-          <Card className="min-w-0 lg:col-span-3 xl:col-span-1 xl:h-full xl:overflow-hidden">
-            <CardHeader className="p-3">
+          <Card className="flex min-w-0 flex-col lg:col-span-3 xl:col-span-1 xl:h-full xl:overflow-hidden">
+            <CardHeader className="shrink-0 flex-nowrap items-start p-3">
               <CardTitle>Recent Activities</CardTitle>
-              <Button variant="link" size="sm" onClick={() => navigate("/admin/relationships")}>View All</Button>
+              <Button className="h-auto shrink-0 p-0 text-xs" variant="link" size="sm" onClick={() => navigate("/admin/relationships")}>View All</Button>
             </CardHeader>
-            <CardContent className="p-3 pt-0">
+            <CardContent className="min-h-0 flex-1 p-3 pt-0">
               {activity.length === 0 ? (
                 <EmptyState title="No recent activity" className="py-6" />
               ) : (
@@ -193,12 +193,12 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="min-w-0 lg:col-span-3 xl:col-span-1 xl:h-full xl:overflow-hidden">
-            <CardHeader className="p-3">
+          <Card className="flex min-w-0 flex-col lg:col-span-3 xl:col-span-1 xl:h-full xl:overflow-hidden">
+            <CardHeader className="shrink-0 flex-nowrap items-start p-3">
               <CardTitle className="text-[13px] leading-tight">Buyers / Relationships</CardTitle>
-              <Button variant="link" size="sm" onClick={() => navigate("/admin/buyers")}>View All</Button>
+              <Button className="h-auto shrink-0 p-0 text-xs" variant="link" size="sm" onClick={() => navigate("/admin/buyers")}>View All</Button>
             </CardHeader>
-            <CardContent className="grid h-[202px] min-h-0 grid-cols-2 grid-rows-2 gap-2 p-3 pt-0">
+            <CardContent className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-2 p-3 pt-0">
               <SummaryTile icon={Users} label="Total Buyers" value={buyers.length} tone="blue" />
               <SummaryTile icon={Users} label="Active Buyers" value={buyers.filter((b) => b.status === "Active").length} tone="green" />
               <SummaryTile icon={CheckCircle2} label="Converted" value={stats.sold} tone="teal" />
@@ -206,12 +206,12 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="min-w-0 lg:col-span-2 xl:col-span-1 xl:h-full xl:overflow-hidden">
-            <CardHeader className="p-3">
+          <Card className="flex min-w-0 flex-col lg:col-span-2 xl:col-span-1 xl:h-full xl:overflow-hidden">
+            <CardHeader className="shrink-0 flex-nowrap items-start p-3">
               <CardTitle>Pending Documents</CardTitle>
-              <Button variant="link" size="sm" onClick={() => navigate("/admin/documents")}>View All</Button>
+              <Button className="h-auto shrink-0 p-0 text-xs" variant="link" size="sm" onClick={() => navigate("/admin/documents")}>View All</Button>
             </CardHeader>
-            <CardContent className="p-3 pt-0">
+            <CardContent className="min-h-0 flex-1 p-3 pt-0">
               <ul className="flex flex-col gap-2.5">
                 {pendingDocsByCategory.map((d) => (
                   <li key={d.label} className="flex items-center gap-3">
@@ -226,12 +226,12 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="min-w-0 lg:col-span-2 xl:col-span-1 xl:h-full xl:overflow-hidden">
-            <CardHeader className="p-2.5">
+          <Card className="flex min-w-0 flex-col lg:col-span-2 xl:col-span-1 xl:h-full xl:overflow-hidden">
+            <CardHeader className="shrink-0 flex-nowrap items-start p-3">
               <CardTitle className="text-[13px] leading-tight">Pending Payments</CardTitle>
-              <Button variant="link" size="sm" onClick={() => navigate("/admin/finance")}>View All</Button>
+              <Button className="h-auto shrink-0 p-0 text-xs" variant="link" size="sm" onClick={() => navigate("/admin/finance")}>View All</Button>
             </CardHeader>
-            <CardContent className="p-2.5 pt-0">
+            <CardContent className="min-h-0 flex-1 p-3 pt-0">
               <ul className="flex flex-col gap-1.5">
                 {paymentBuckets.map((b) => (
                   <li key={b.label} className="flex items-center justify-between gap-2 py-0.5">
@@ -250,12 +250,12 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="min-w-0 lg:col-span-2 xl:col-span-1 xl:h-full xl:overflow-hidden">
-            <CardHeader className="p-3">
+          <Card className="flex min-w-0 flex-col lg:col-span-2 xl:col-span-1 xl:h-full xl:overflow-hidden">
+            <CardHeader className="shrink-0 flex-nowrap items-start p-3">
               <CardTitle>Communication Reminders</CardTitle>
-              <Button variant="link" size="sm" onClick={() => navigate("/admin/support")}>View All</Button>
+              <Button className="h-auto shrink-0 p-0 text-xs" variant="link" size="sm" onClick={() => navigate("/admin/support")}>View All</Button>
             </CardHeader>
-            <CardContent className="p-3 pt-0">
+            <CardContent className="min-h-0 flex-1 p-3 pt-0">
               <ul className="flex flex-col gap-2.5">
                 <ReminderRow icon={Bell} label="Follow-ups" value={buyers.filter((b) => b.nextFollowUp).length} tone="orange" />
                 <ReminderRow icon={CalendarClock} label="Payment Reminders" value={installments.filter((i) => i.status === "Upcoming").length} tone="blue" />

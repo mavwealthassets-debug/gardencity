@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, Search, CalendarDays } from "lucide-react";
 import { ProjectSelector } from "./ProjectSelector";
 import { NotificationPanel } from "./NotificationPanel";
@@ -17,6 +17,17 @@ export function AdminTopbar({ onMenuClick }: { onMenuClick: () => void }) {
   const financePage = pathname === "/admin/finance";
   const { notifications, markNotificationRead, markAllNotificationsRead } = useAppData();
 
+  useEffect(() => {
+    const openSearch = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", openSearch);
+    return () => window.removeEventListener("keydown", openSearch);
+  }, []);
+
   if (!user) return null;
   const userNotifications = notifications
     .filter((n) => n.userId === user.id)
@@ -33,7 +44,7 @@ export function AdminTopbar({ onMenuClick }: { onMenuClick: () => void }) {
       </div>
       <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
         <ProjectSelector />
-        <button type="button" onClick={() => setSearchOpen(true)} aria-label="Global search" className="flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 hover:bg-surface-muted hover:text-neutral-800"><Search size={18} /></button>
+        <button type="button" onClick={() => setSearchOpen(true)} title="Global search (Ctrl/Cmd + K)" aria-label="Global search" className="flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 hover:bg-surface-muted hover:text-neutral-800"><Search size={18} /></button>
         <NotificationPanel notifications={userNotifications} onMarkRead={markNotificationRead} onMarkAllRead={() => markAllNotificationsRead(user.id)} />
         <div className="relative hidden sm:block">
           <button type="button" onClick={() => setCalendarOpen((value) => !value)} aria-label="Calendar" aria-expanded={calendarOpen} className="flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 hover:bg-surface-muted hover:text-neutral-800"><CalendarDays size={18} /></button>

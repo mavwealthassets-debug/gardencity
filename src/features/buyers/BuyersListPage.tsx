@@ -14,6 +14,8 @@ import { Avatar } from "@/components/common/Avatar";
 import { useAppData } from "@/app/store";
 import { relationshipManagers } from "@/data/users";
 import { formatDate } from "@/lib/format";
+import { BuyerQuickView } from "@/components/buyers/BuyerQuickView";
+import type { Buyer } from "@/types";
 
 const PAGE_SIZE = 10;
 
@@ -26,6 +28,7 @@ export default function BuyersListPage() {
   const statusFilter = ["Active", "Lead", "Inactive"].includes(requestedStatus ?? "") ? requestedStatus! : "all";
   const [rmFilter, setRmFilter] = useState("all");
   const [page, setPage] = useState(1);
+  const [quickViewBuyer, setQuickViewBuyer] = useState<Buyer | null>(null);
 
   const stats = useMemo(
     () => ({
@@ -108,7 +111,7 @@ export default function BuyersListPage() {
                       <TD>
                         <span className="flex items-center gap-2.5">
                           <Avatar name={b.name} size="sm" />
-                          <span className="font-semibold text-neutral-900">{b.name}</span>
+                          <button type="button" className="font-semibold text-neutral-900 hover:text-brand-700 hover:underline" onClick={(event) => { event.stopPropagation(); setQuickViewBuyer(b); }}>{b.name}</button>
                         </span>
                       </TD>
                       <TD>
@@ -130,6 +133,7 @@ export default function BuyersListPage() {
           {pageItems.length > 0 && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} totalItems={filtered.length} pageSize={PAGE_SIZE} />}
         </TableContainer>
       </div>
+      <BuyerQuickView buyer={quickViewBuyer} open={!!quickViewBuyer} onClose={() => setQuickViewBuyer(null)} />
     </div>
   );
 }

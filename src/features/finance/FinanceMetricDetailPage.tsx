@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowLeft, CheckCircle2, Copy, Download, Filter } from "lucide-react";
+import { ArrowDown, ArrowLeft, Bookmark, CheckCircle2, Copy, Filter, Save } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/common/Button";
 import { Card, CardContent } from "@/components/common/Card";
@@ -11,6 +11,9 @@ import { useToast } from "@/app/toast";
 import { loans } from "@/data/payments";
 import { getBuyerById } from "@/data/buyers";
 import { formatDate, formatINR, formatINRCompact } from "@/lib/format";
+import { ExportMenu } from "@/components/common/ExportMenu";
+import { downloadBlob, downloadTextPdf } from "@/lib/download";
+import { Dropdown, DropdownItem, DropdownSeparator } from "@/components/common/Dropdown";
 
 type DetailRow = { id: string; customer: string; reference: string; date: string; base: number; adjustment: number; final: number; status: string };
 
@@ -32,6 +35,8 @@ export default function FinanceMetricDetailPage() {
   const config = METRICS[key];
   const [query, setQuery] = useState("");
   const [recordView, setRecordView] = useState("included");
+  const [ageing, setAgeing] = useState("all");
+  const [savedViews, setSavedViews] = useState<Array<{ name: string; query: string; ageing: string }>>([]);
 
   const rows = useMemo<DetailRow[]>(() => {
     if (key === "overdue") return installments.filter((i) => i.status === "Overdue").map((i) => ({ id: i.id, customer: getBuyerById(i.buyerId)?.name ?? "—", reference: i.plotId, date: i.dueDate, base: i.amount, adjustment: -i.paidAmount, final: i.amount - i.paidAmount, status: i.status }));
@@ -42,7 +47,12 @@ export default function FinanceMetricDetailPage() {
     return eligible.filter((p) => key !== "outstanding" || p.finalPrice > (p.paidAmount ?? 0)).map((p) => ({ id: p.id, customer: p.buyerId ? getBuyerById(p.buyerId)?.name ?? "—" : "—", reference: p.plotNo, date: p.bookingDate ?? "2025-01-01", base: key === "outstanding" ? p.finalPrice : p.basePrice, adjustment: key === "outstanding" ? -(p.paidAmount ?? 0) : -p.discount, final: key === "outstanding" ? p.finalPrice - (p.paidAmount ?? 0) : p.finalPrice, status: p.status === "sold" ? "Sold" : "Booked" }));
   }, [key, plots, buyers, installments, transactions]);
 
-  const filteredRows = rows.filter((row) => `${row.customer} ${row.reference} ${row.status}`.toLowerCase().includes(query.toLowerCase()));
+  const filteredRows = rows.filter((row) => {
+    if (!`${row.customer} ${row.reference} ${row.status}`.toLowerCase().includes(query.toLowerCase())) return false;
+    if (key !== "overdue" || ageing === "all") return true;
+    const days = Math.max(0, Math.floor((Date.now() - new Date(row.date).getTime()) / 86400000));
+    return ageing === "0-30" ? days <= 30 : ageing === "31-60" ? days <= 60 && days >= 31 : ageing === "61-90" ? days <= 90 && days >= 61 : days > 90;
+  });
   const total = key === "loans" || key === "registrations" ? rows.length : rows.reduce((sum, row) => sum + row.final, 0);
   const calculation = useMemo(() => {
     const base = rows.reduce((sum, row) => sum + row.base, 0);
@@ -92,6 +102,20 @@ export default function FinanceMetricDetailPage() {
   const excludedCount = key === "loans" || key === "registrations" ? Math.max(0, buyers.length - rows.length) : Math.max(0, plots.length - rows.length);
   const adjustedCount = rows.filter((row) => row.adjustment !== 0).length;
   const displayedValue = key === "loans" || key === "registrations" ? String(total) : formatINRCompact(total);
+  const exportRows = () => [["Ref ID", "Customer", "Reference", "Date", "Value", "Adjustment", "Counted", "Status"], ...filteredRows.map((row) => [row.id, row.customer, row.reference, row.date, row.base, row.adjustment, row.final, row.status])];
+  const exportDelimited = (delimiter: string, extension: string, mime: string) => {
+    const content = exportRows().map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(delimiter)).join("\n");
+    downloadBlob(new Blob([content], { type: mime }), `${key}-records.${extension}`);
+  };
+  const exportPdf = (detailed: boolean) => downloadTextPdf(`${key}-${detailed ? "detailed" : "summary"}.pdf`, `${config.title} ${detailed ? "Detailed Report" : "Summary"}`, [
+    `Value: ${displayedValue}`, `Records: ${rows.length}`, `Included: ${rows.length}`, `Excluded: ${excludedCount}`, `Adjustments: ${adjustedCount}`,
+    ...(detailed ? filteredRows.slice(0, 12).map((row) => `${row.reference}: ${row.customer} · ${formatINR(row.final)}`) : []),
+  ]);
+  const saveCurrentView = () => {
+    const next = [...savedViews, { name: query || (ageing === "all" ? `All ${config.title}` : `${ageing} days`), query, ageing }].slice(-5);
+    setSavedViews(next);
+    toast({ variant: "success", title: "View saved", description: "This filter view is available for the current session." });
+  };
 
   return (
     <div className="px-4 py-5 sm:px-6">
@@ -131,10 +155,10 @@ export default function FinanceMetricDetailPage() {
           </section>
 
           <section className="px-5 py-6">
-            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><div><h2 className="text-sm font-bold uppercase tracking-[0.12em]">Transactions contributing to this value</h2><p className="mt-1 text-xs text-neutral-500">{rows.length} records reconciled from the dummy dataset</p></div><Button variant="secondary" size="sm" onClick={() => toast({ variant: "success", title: "Export started", description: `${config.title} records are being prepared.` })}><Download size={14} /> Export</Button></div>
-            <div className="mt-4 flex flex-wrap items-center gap-2"><SearchInput value={query} onChange={setQuery} placeholder="Search reference or customer..." containerClassName="mr-auto w-full sm:w-72" /><Button variant="secondary" size="sm"><Filter size={14} /> Status</Button><Select defaultValue="newest" className="w-36" aria-label="Sort records"><option value="newest">Newest first</option><option value="oldest">Oldest first</option></Select></div>
+            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><div><h2 className="text-sm font-bold uppercase tracking-[0.12em]">Transactions contributing to this value</h2><p className="mt-1 text-xs text-neutral-500">{rows.length} records reconciled from the current dataset</p></div><ExportMenu onExcel={() => exportDelimited("\t", "xls", "application/vnd.ms-excel")} onCsv={() => exportDelimited(",", "csv", "text/csv;charset=utf-8")} onPdfSummary={() => exportPdf(false)} onDetailedPdf={() => exportPdf(true)} /></div>
+            <div className="mt-4 flex flex-wrap items-center gap-2"><SearchInput value={query} onChange={setQuery} placeholder="Search reference or customer..." containerClassName="mr-auto w-full sm:w-72" />{key === "overdue" && <Select value={ageing} onChange={(event) => setAgeing(event.target.value)} className="w-36" aria-label="Ageing bucket"><option value="all">All ageing</option><option value="0-30">0–30 days</option><option value="31-60">31–60 days</option><option value="61-90">61–90 days</option><option value="90+">90+ days</option></Select>}<Button variant="secondary" size="sm" title="Uses the status shown in each record"><Filter size={14} /> Status</Button><Dropdown trigger={({ onClick }) => <Button variant="secondary" size="sm" onClick={onClick}><Bookmark size={14} /> Views</Button>}><DropdownItem onClick={saveCurrentView}><Save size={14} /> Save current view</DropdownItem>{savedViews.length > 0 && <DropdownSeparator />}{savedViews.map((view, index) => <DropdownItem key={`${view.name}-${index}`} onClick={() => { setQuery(view.query); setAgeing(view.ageing); }}>{view.name}</DropdownItem>)}</Dropdown><Select defaultValue="newest" className="w-36" aria-label="Sort records"><option value="newest">Newest first</option><option value="oldest">Oldest first</option></Select></div>
             {recordView === "included" ? <TableContainer className="mt-4 shadow-none"><Table><THead><TR><TH>Ref ID</TH><TH>Customer</TH><TH>Plot / Reference</TH><TH>Date</TH><TH className="text-right">Value</TH><TH className="text-right">Adjustment</TH><TH className="text-right">Counted</TH><TH>Status</TH></TR></THead><TBody>{filteredRows.map((row) => <TR key={row.id}><TD className="font-medium">{row.id}</TD><TD>{row.customer}</TD><TD>{row.reference}</TD><TD>{formatDate(row.date)}</TD><TD className="text-right">{row.base ? formatINR(row.base) : "-"}</TD><TD className="text-right">{row.adjustment ? formatINR(row.adjustment) : "-"}</TD><TD className="text-right font-semibold">{row.final ? formatINR(row.final) : "-"}</TD><TD>{row.status}</TD></TR>)}</TBody></Table></TableContainer> : <div className="mt-4 rounded-xl bg-surface-subtle py-10 text-center text-sm text-neutral-500">No {recordView} records in the current dummy dataset.</div>}
-            <div className="mt-5 flex items-center justify-center gap-2 border-t border-border pt-4 text-xs font-semibold text-brand-700"><CheckCircle2 size={16} /> {displayedValue} records reconciled</div>
+            <div className="mt-5 flex items-center justify-center gap-2 border-t border-border pt-4 text-xs font-semibold text-brand-700"><CheckCircle2 size={16} /> Dashboard total reconciled · {displayedValue}</div>
             <button type="button" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })} className="mx-auto mt-4 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-white text-neutral-600 shadow-sm" aria-label="Scroll down"><ArrowDown size={16} /></button>
           </section>
         </CardContent></Card>

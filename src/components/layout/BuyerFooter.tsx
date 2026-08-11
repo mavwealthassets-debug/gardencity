@@ -1,5 +1,6 @@
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import { Logo } from "@/components/common/Logo";
+import { Link } from "react-router-dom";
 
 const SOCIAL_ICON_PATHS: Record<string, string> = {
   Facebook: "M13.5 9H15V6.5h-1.5C11.6 6.5 10.5 7.6 10.5 9v1.5H9V13h1.5v6.5H13V13h1.7l.3-2.5h-2V9c0-.3.2-.5.5-.5Z",
@@ -30,10 +31,10 @@ export function BuyerFooter() {
               <MapPin size={15} className="mt-0.5 shrink-0" /> Naugaon, District Nuh, Haryana - 122105
             </li>
             <li className="flex items-center gap-2">
-              <Phone size={15} className="shrink-0" /> +91 1800 123 4567
+              <Phone size={15} className="shrink-0" /> <a href="tel:+9118001234567" className="hover:text-primary">+91 1800 123 4567</a>
             </li>
             <li className="flex items-center gap-2">
-              <Mail size={15} className="shrink-0" /> support@gardencity.com
+              <Mail size={15} className="shrink-0" /> <a href="mailto:support@gardencity.com" className="hover:text-primary">support@gardencity.com</a>
             </li>
             <li className="flex items-start gap-2">
               <Clock size={15} className="mt-0.5 shrink-0" /> Mon - Sat (10 AM - 7 PM)
@@ -43,28 +44,28 @@ export function BuyerFooter() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Quick Links</p>
           <ul className="mt-3 flex flex-col gap-1.5 text-sm leading-5 text-neutral-500">
-            <li>About Project</li>
-            <li>Amenities</li>
-            <li>Master Plan</li>
-            <li>Payment Plan</li>
+            <li><Link to="/buyer/dashboard" className="hover:text-primary">About Project</Link></li>
+            <li><Link to="/buyer/updates" className="hover:text-primary">Amenities & Updates</Link></li>
+            <li><Link to="/buyer/my-plot" className="hover:text-primary">My Plot & Master Plan</Link></li>
+            <li><Link to="/buyer/payments" className="hover:text-primary">Payment Plan</Link></li>
           </ul>
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Buyer Support</p>
           <ul className="mt-3 flex flex-col gap-1.5 text-sm leading-5 text-neutral-500">
-            <li>Help Center</li>
-            <li>Raise a Ticket</li>
-            <li>Grievance Redressal</li>
-            <li>Privacy Policy</li>
+            <li><Link to="/buyer/support" className="hover:text-primary">Help Center</Link></li>
+            <li><Link to="/buyer/support" className="hover:text-primary">Raise a Ticket</Link></li>
+            <li><Link to="/buyer/communication" className="hover:text-primary">Grievance Redressal</Link></li>
+            <li><Link to="/buyer/settings" className="hover:text-primary">Privacy & Settings</Link></li>
           </ul>
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Follow Us</p>
           <div className="mt-3 flex gap-2">
             {(["Facebook", "Instagram", "Youtube", "Linkedin"] as const).map((name) => (
-              <span key={name} className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-muted text-neutral-500">
+              <a key={name} href={`https://${name === "Youtube" ? "youtube.com" : `${name.toLowerCase()}.com`}`} target="_blank" rel="noreferrer" aria-label={name} className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-muted text-neutral-500 hover:bg-brand-50 hover:text-primary">
                 <SocialIcon name={name} />
-              </span>
+              </a>
             ))}
           </div>
         </div>

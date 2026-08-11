@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/common/Ca
 import { Button } from "@/components/common/Button";
 import { RmContactBand } from "@/components/layout/RmContactBand";
 import { useCurrentBuyer } from "./useCurrentBuyer";
-import { useToast } from "@/app/toast";
 import { gardenCityProject } from "@/data/project";
 
 const SERVICES = [
@@ -23,7 +22,6 @@ const LANDMARKS = [
 
 export default function SalesOfficePage() {
   const { buyer } = useCurrentBuyer();
-  const { toast } = useToast();
 
   return (
     <div className="flex flex-col gap-5">
@@ -36,7 +34,7 @@ export default function SalesOfficePage() {
         <img src={gardenCityProject.heroImage} alt="Garden City Naugaon sales office" className="aspect-[878/295] w-full object-cover" />
         <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="flex items-center gap-2 text-sm text-neutral-600"><MapPin size={16} className="text-brand-700" /> {gardenCityProject.location}</p>
-          <Button variant="secondary" onClick={() => toast({ variant: "info", title: "Opening directions..." })}><Navigation size={15} /> Get Directions</Button>
+          <Button variant="secondary" onClick={() => window.open("https://www.google.com/maps/search/?api=1&query=Garden+City+Naugaon+Haryana", "_blank", "noopener,noreferrer")}><Navigation size={15} /> Get Directions</Button>
         </CardContent>
       </Card>
 
@@ -85,7 +83,7 @@ export default function SalesOfficePage() {
             <div className="flex h-40 items-center justify-center rounded-lg bg-surface-subtle text-sm text-neutral-400">Map preview</div>
             <div className="mt-auto">
               <p className="text-sm leading-6 text-neutral-600">We welcome you to visit our Sales Office, take a guided tour, and discover why Garden City Naugaon is the perfect place for your future.</p>
-              <Button className="mt-4 w-full" onClick={() => toast({ variant: "success", title: "Calling Sales Office..." })}><PhoneIcon size={15} /> Call Sales Office</Button>
+              <Button className="mt-4 w-full" onClick={() => { window.location.href = "tel:+9118001234567"; }}><PhoneIcon size={15} /> Call Sales Office</Button>
             </div>
           </CardContent>
         </Card>

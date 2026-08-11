@@ -6,6 +6,7 @@ import { RmContactBand } from "@/components/layout/RmContactBand";
 import { useCurrentBuyer } from "./useCurrentBuyer";
 import { useToast } from "@/app/toast";
 import { formatDate, formatINR } from "@/lib/format";
+import { downloadTextPdf } from "@/lib/download";
 
 const LOCATION_ADVANTAGES = [
   { icon: TreePine, title: "Near Park", desc: "Located close to landscaped parks and green spaces." },
@@ -78,7 +79,7 @@ export default function MyPlotPage() {
               <DetailRow label="Purchase Date" value={plot.bookingDate ? formatDate(plot.bookingDate) : "—"} />
               <DetailRow label="Purchase Price" value={formatINR(plot.finalPrice)} />
             </dl>
-            <Button className="w-full" onClick={() => toast({ variant: "success", title: "Plot details downloaded", description: `${plot.plotNo}-details.pdf` })}>
+            <Button className="w-full" onClick={() => { downloadTextPdf(`${plot.plotNo}-details.pdf`, `Plot ${plot.plotNo} Details`, [`Buyer: ${buyer.name}`, `Block: ${plot.block}`, `Size: ${plot.areaSqYd} sq yd`, `Facing: ${plot.facing}`, `Road width: ${plot.roadWidthFt} ft`, `Category: ${plot.category}`, `Purchase price: ${formatINR(plot.finalPrice)}`]); toast({ variant: "success", title: "Plot details downloaded", description: `${plot.plotNo}-details.pdf` }); }}>
               <Download size={15} /> Download Plot Details
             </Button>
           </CardContent>

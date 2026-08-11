@@ -23,6 +23,9 @@ export default function MyProfilePage() {
   const { toast } = useToast();
   const [tab, setTab] = useState("details");
   const [phone, setPhone] = useState(buyer.phone);
+  const [name, setName] = useState(buyer.name);
+  const [email, setEmail] = useState(buyer.email);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [showOtp, setShowOtp] = useState(false);
   const [otp, setOtp] = useState("");
   const [pendingPhone, setPendingPhone] = useState("");
@@ -53,12 +56,12 @@ export default function MyProfilePage() {
 
       <Card>
         <CardContent className="flex min-h-[124px] flex-col gap-4 p-6 sm:flex-row sm:items-center">
-          <Avatar name={buyer.name} size="xl" className="bg-brand-600 text-white" />
+          {photoUrl ? <img src={photoUrl} alt={buyer.name} className="h-16 w-16 rounded-full object-cover" /> : <Avatar name={buyer.name} size="xl" className="bg-brand-600 text-white" />}
           <div className="flex-1">
             <p className="flex items-center gap-2 text-lg font-bold text-neutral-900">{buyer.name} <ShieldCheck size={16} className="text-brand-600" /></p>
             <p className="text-sm text-neutral-500">{buyer.purpose} Buyer</p>
           </div>
-          <Button variant="secondary" size="sm" className="sm:ml-auto" onClick={() => toast({ variant: "info", title: "Choose a new profile photo" })}>Change Photo</Button>
+          <label className="inline-flex h-8 cursor-pointer items-center justify-center rounded-lg border border-border-strong bg-white px-3 text-xs font-semibold text-neutral-700 hover:bg-surface-muted sm:ml-auto"><input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (file) { setPhotoUrl(URL.createObjectURL(file)); toast({ variant: "success", title: "Profile photo updated" }); } }} />Change Photo</label>
         </CardContent>
       </Card>
 
@@ -69,8 +72,8 @@ export default function MyProfilePage() {
           <Card>
             <CardHeader><CardTitle>Personal Details</CardTitle></CardHeader>
             <CardContent className="flex flex-col gap-4">
-              <Input label="Full Name" defaultValue={buyer.name} />
-              <Input label="Email" type="email" defaultValue={buyer.email} />
+              <Input label="Full Name" value={name} onChange={(event) => setName(event.target.value)} />
+              <Input label="Email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
               <div>
                 <Input label="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value)} hint="Changing this will require OTP verification." />
                 {phone !== buyer.phone && (
@@ -81,7 +84,7 @@ export default function MyProfilePage() {
               <Select label="Occupation" defaultValue="Business">
                 <option>Business</option><option>Salaried</option><option>Professional</option><option>Other</option>
               </Select>
-              <Button className="w-fit" onClick={() => toast({ variant: "success", title: "Profile updated" })}>Update Profile</Button>
+              <Button className="w-fit" onClick={() => { updateBuyer(buyer.id, { name, email }); toast({ variant: "success", title: "Profile updated" }); }}>Update Profile</Button>
             </CardContent>
           </Card>
 

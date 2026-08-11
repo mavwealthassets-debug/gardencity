@@ -13,6 +13,7 @@ import { useToast } from "@/app/toast";
 import { formatDate, formatINR } from "@/lib/format";
 import { projectUpdates } from "@/data/updates";
 import { gardenCityProject } from "@/data/project";
+import { downloadTextPdf } from "@/lib/download";
 
 const DEVELOPMENT_PROGRESS = [
   { label: "Roads", percent: 85 },
@@ -129,8 +130,8 @@ export default function BuyerDashboardPage() {
         <Card>
           <CardHeader><CardTitle>Quick Actions</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <QuickActionCard icon={Download} label="Download Receipt" onClick={() => toast({ variant: "success", title: "Receipt downloaded", description: "Latest payment receipt saved as PDF." })} />
-            <QuickActionCard icon={Phone} label="Contact RM" onClick={() => toast({ variant: "info", title: "Calling Sandeep Singh…" })} />
+            <QuickActionCard icon={Download} label="Download Receipt" onClick={() => { const paid = schedule.filter((item) => item.status === "Paid").at(-1); downloadTextPdf(`payment-receipt-${plot.plotNo}.pdf`, "Garden City Payment Receipt", [`Buyer: ${buyer.name}`, `Plot: ${plot.plotNo}`, `Installment: ${paid?.installmentLabel ?? "Latest payment"}`, `Amount: ${formatINR(paid?.paidAmount ?? plot.paidAmount ?? 0)}`, `Status: Paid`]); toast({ variant: "success", title: "Receipt downloaded", description: "Latest payment receipt saved as PDF." }); }} />
+            <QuickActionCard icon={Phone} label="Contact RM" onClick={() => { window.location.href = "tel:+919876543210"; }} />
             <QuickActionCard icon={Headset} label="Raise Support" onClick={() => navigate("/buyer/support")} />
             <QuickActionCard icon={Gift} label="Refer a Friend" onClick={() => navigate("/buyer/referrals")} />
           </CardContent>

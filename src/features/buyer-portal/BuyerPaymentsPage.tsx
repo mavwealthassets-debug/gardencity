@@ -11,6 +11,7 @@ import { useAppData } from "@/app/store";
 import { useToast } from "@/app/toast";
 import { formatDate, formatINR } from "@/lib/format";
 import type { PaymentInstallment, PaymentTransaction } from "@/types";
+import { downloadTextPdf } from "@/lib/download";
 
 type SimResult = "success" | "pending" | "failed" | null;
 
@@ -33,6 +34,11 @@ export default function BuyerPaymentsPage() {
     [transactions, buyer.id]
   );
   const nextInstallment = schedule.find((i) => i.status !== "Paid");
+
+  function downloadReceipt(label: string, amount: number, date: string, reference = "Garden City receipt") {
+    downloadTextPdf(`receipt-${plot.plotNo}-${date}.pdf`, "Garden City Payment Receipt", [`Buyer: ${buyer.name}`, `Plot: ${plot.plotNo}`, `Payment: ${label}`, `Amount: ${formatINR(amount)}`, `Date: ${formatDate(date)}`, `Reference: ${reference}`, "Status: Paid"]);
+    toast({ variant: "success", title: "Receipt downloaded" });
+  }
 
   function simulatePayment() {
     if (!payTarget) return;
@@ -102,7 +108,7 @@ export default function BuyerPaymentsPage() {
                     <td className="whitespace-nowrap px-3 py-2.5">{i.paidOn ? formatDate(i.paidOn) : "—"}</td>
                     <td className="pl-3 py-2.5">
                       {i.status === "Paid" ? (
-                        <button onClick={() => toast({ variant: "success", title: "Receipt downloaded" })} className="text-brand-700 hover:underline"><Download size={14} /></button>
+                        <button onClick={() => downloadReceipt(i.installmentLabel, i.paidAmount, i.paidOn ?? i.dueDate)} className="text-brand-700 hover:underline"><Download size={14} /></button>
                       ) : "—"}
                     </td>
                   </tr>
@@ -156,7 +162,7 @@ export default function BuyerPaymentsPage() {
                     <td className="whitespace-nowrap px-3 py-2.5">{t.mode}</td>
                     <td className="px-3 py-2.5"><StatusBadge tone="green" dot={false}>{t.status}</StatusBadge></td>
                     <td className="truncate px-3 py-2.5 font-mono text-xs">{t.referenceNo}</td>
-                    <td className="pl-3 py-2.5"><button onClick={() => toast({ variant: "success", title: "Receipt downloaded" })} className="text-brand-700 hover:underline"><Download size={14} /></button></td>
+                    <td className="pl-3 py-2.5"><button onClick={() => downloadReceipt("Payment transaction", t.amount, t.date, t.referenceNo)} className="text-brand-700 hover:underline"><Download size={14} /></button></td>
                   </tr>
                 ))}
               </tbody>

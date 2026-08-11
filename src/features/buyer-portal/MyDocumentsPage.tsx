@@ -13,6 +13,7 @@ import { useAppData } from "@/app/store";
 import { useToast } from "@/app/toast";
 import { formatDate } from "@/lib/format";
 import type { DocumentCategory, DocumentItem } from "@/types";
+import { downloadTextPdf } from "@/lib/download";
 
 const TABS = [
   { value: "all", label: "All Documents" },
@@ -29,6 +30,8 @@ export default function MyDocumentsPage() {
   const { toast } = useToast();
   const [tab, setTab] = useState("all");
   const [showUpload, setShowUpload] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadCategory, setUploadCategory] = useState<DocumentCategory>("Financial");
 
   const myDocs = useMemo(
     () =>
@@ -40,24 +43,35 @@ export default function MyDocumentsPage() {
   );
 
   function handleUpload() {
+    if (!uploadFile) return;
     const doc: DocumentItem = {
       id: `doc-buyer-${Date.now()}`,
       buyerId: buyer.id,
       plotId: plot.plotNo,
-      name: "Bank Statement (Latest 3 months)",
-      category: "Financial",
+      name: uploadFile.name,
+      category: uploadCategory,
       status: "Pending",
       uploadedBy: buyer.name,
       uploadedByRole: "Buyer",
       uploadDate: new Date().toISOString().slice(0, 10),
-      fileSizeKb: 1450,
-      fileType: "PDF",
+      fileSizeKb: Math.max(1, Math.round(uploadFile.size / 1024)),
+      fileType: uploadFile.type === "application/pdf" ? "PDF" : uploadFile.type === "image/png" ? "PNG" : "JPG",
       version: 1,
       history: [{ version: 1, date: new Date().toISOString().slice(0, 10), action: "Uploaded", by: buyer.name }],
     };
     uploadDocument(doc);
     toast({ variant: "success", title: "Document uploaded", description: "Your document has been submitted for verification." });
     setShowUpload(false);
+    setUploadFile(null);
+  }
+
+  function selectFile(file?: File) {
+    if (!file) return;
+    if (!["application/pdf", "image/jpeg", "image/png"].includes(file.type) || file.size > 10 * 1024 * 1024) {
+      toast({ variant: "error", title: "Invalid document", description: "Select a PDF, JPG, or PNG file up to 10MB." });
+      return;
+    }
+    setUploadFile(file);
   }
 
   return (
@@ -90,7 +104,7 @@ export default function MyDocumentsPage() {
                         {d.status === "Rejected" && d.rejectionReason && <p className="mt-1 max-w-xs text-xs text-status-sold">{d.rejectionReason}</p>}
                       </td>
                       <td>{formatDate(d.uploadDate)}</td>
-                      <td><button onClick={() => toast({ variant: "success", title: "Document downloaded" })} className="text-brand-700 hover:underline"><Download size={14} /></button></td>
+                      <td><button onClick={() => { downloadTextPdf(`${d.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.pdf`, d.name, [`Buyer: ${buyer.name}`, `Plot: ${d.plotId ?? plot.plotNo}`, `Category: ${d.category}`, `Status: ${d.status}`, `Uploaded: ${formatDate(d.uploadDate)}`, `Version: ${d.version}`]); toast({ variant: "success", title: "Document downloaded" }); }} className="text-brand-700 hover:underline"><Download size={14} /></button></td>
                     </tr>
                   ))}
                 </tbody>
@@ -149,14 +163,16 @@ export default function MyDocumentsPage() {
         onClose={() => setShowUpload(false)}
         title="Upload Document"
         description="Upload your document securely. Supported formats: PDF, JPG, PNG (Max 10MB)."
-        footer={<><Button variant="secondary" onClick={() => setShowUpload(false)}>Cancel</Button><Button onClick={handleUpload}><Upload size={15} /> Upload</Button></>}
+        footer={<><Button variant="secondary" onClick={() => { setShowUpload(false); setUploadFile(null); }}>Cancel</Button><Button onClick={handleUpload} disabled={!uploadFile}><Upload size={15} /> Upload</Button></>}
       >
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border-strong bg-surface-subtle p-8 text-center">
-            <Upload size={22} className="text-neutral-400" />
-            <p className="text-sm text-neutral-500">Drag and drop a file, or click to browse</p>
-          </div>
-          <Select label="Document Category" defaultValue="Financial">
+          <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border-strong bg-surface-subtle p-8 text-center hover:border-primary" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); selectFile(event.dataTransfer.files[0]); }}>
+            <input type="file" className="sr-only" accept=".pdf,.jpg,.jpeg,.png" onChange={(event) => selectFile(event.target.files?.[0])} />
+            <Upload size={22} className={uploadFile ? "text-primary" : "text-neutral-400"} />
+            <p className="text-sm text-neutral-600">{uploadFile?.name ?? "Drag and drop a file, or click to browse"}</p>
+            {uploadFile && <p className="text-xs text-neutral-500">{(uploadFile.size / 1024 / 1024).toFixed(2)} MB · Click to replace</p>}
+          </label>
+          <Select label="Document Category" value={uploadCategory} onChange={(event) => setUploadCategory(event.target.value as DocumentCategory)}>
             {(["KYC", "Financial", "Property", "Legal"] as DocumentCategory[]).map((c) => <option key={c} value={c}>{c}</option>)}
           </Select>
         </div>

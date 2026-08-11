@@ -45,7 +45,7 @@ export default function BuyerPaymentsPage() {
     setProcessing(true);
     setResult(null);
     window.setTimeout(() => {
-      const outcome: SimResult = Math.random() < 0.85 ? "success" : Math.random() < 0.6 ? "pending" : "failed";
+      const outcome: SimResult = "success";
       setProcessing(false);
       setResult(outcome);
       if (outcome === "success") {
@@ -199,7 +199,7 @@ export default function BuyerPaymentsPage() {
                 <CheckCircle2 className="text-status-available" size={40} />
                 <p className="text-base font-semibold text-neutral-900">Payment Successful (Simulated)</p>
                 <p className="text-sm text-neutral-500">This is a frontend simulation — no real payment was processed.</p>
-                <Button className="mt-2" onClick={closePayModal}>Done</Button>
+                <div className="mt-2 flex gap-2"><Button variant="secondary" onClick={() => downloadReceipt(payTarget.installmentLabel, payTarget.amount, new Date().toISOString().slice(0, 10), `SIM-${Date.now()}`)}><Download size={14} /> Receipt</Button><Button onClick={closePayModal}>Done</Button></div>
               </div>
             )}
             {result === "pending" && (

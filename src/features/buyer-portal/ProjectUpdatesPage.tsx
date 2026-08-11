@@ -42,7 +42,7 @@ export default function ProjectUpdatesPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((u) => (
-          <Card key={u.id} className="cursor-pointer overflow-hidden" onClick={() => setActive(u)}>
+          <Card key={u.id} role="button" tabIndex={0} aria-label={`View update: ${u.title}`} className="cursor-pointer overflow-hidden transition hover:-translate-y-0.5 hover:shadow-popover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" onClick={() => setActive(u)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setActive(u); } }}>
             <img src={u.images[0]} alt={u.title} className="h-40 w-full object-cover" />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -51,6 +51,7 @@ export default function ProjectUpdatesPage() {
               </div>
               <p className="mt-2 text-sm font-semibold text-neutral-900">{u.title}</p>
               <p className="mt-1 line-clamp-2 text-xs text-neutral-500">{u.description}</p>
+              <p className="mt-3 text-xs font-semibold text-primary">View details</p>
             </CardContent>
           </Card>
         ))}

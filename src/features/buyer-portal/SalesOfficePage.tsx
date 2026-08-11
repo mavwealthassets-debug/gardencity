@@ -34,7 +34,7 @@ export default function SalesOfficePage() {
         <img src={gardenCityProject.heroImage} alt="Garden City Naugaon sales office" className="aspect-[878/295] w-full object-cover" />
         <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="flex items-center gap-2 text-sm text-neutral-600"><MapPin size={16} className="text-brand-700" /> {gardenCityProject.location}</p>
-          <Button variant="secondary" onClick={() => window.open("https://www.google.com/maps/search/?api=1&query=Garden+City+Naugaon+Haryana", "_blank", "noopener,noreferrer")}><Navigation size={15} /> Get Directions</Button>
+          <Button variant="secondary" onClick={() => window.location.assign("https://www.google.com/maps/search/?api=1&query=Garden+City+Naugaon+Haryana")}><Navigation size={15} /> Get Directions</Button>
         </CardContent>
       </Card>
 

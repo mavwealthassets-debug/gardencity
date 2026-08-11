@@ -116,10 +116,44 @@ export default function FinancePage() {
     setPayTarget(null);
   }
 
+  function exportFinanceReport() {
+    const headers = ["Buyer", "Plot", "Installment", "Due Date", "Amount", "Paid", "Balance", "Status"];
+    const rows = filteredInstallments.map((installment) => [
+      getBuyerById(installment.buyerId)?.name ?? "Buyer",
+      installment.plotId,
+      `${installment.installmentLabel} (${installment.installmentNo} of ${installment.totalInstallments})`,
+      formatDate(installment.dueDate),
+      formatINR(installment.amount),
+      formatINR(installment.paidAmount),
+      formatINR(Math.max(0, installment.amount - installment.paidAmount)),
+      installment.status,
+    ]);
+    const escape = (value: string) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const summaryRows = [
+      ["Total Sales Value", formatINR(stats.totalSales)],
+      ["Amount Collected", formatINR(stats.collected)],
+      ["Outstanding", formatINR(stats.outstanding)],
+      ["Overdue Payments", formatINR(stats.overdue)],
+    ];
+    const summary = summaryRows.map(([label, value]) => `<tr><th>${escape(label)}</th><td>${escape(value)}</td></tr>`).join("");
+    const headerCells = headers.map((header) => `<th>${escape(header)}</th>`).join("");
+    const bodyRows = rows.map((row) => `<tr>${row.map((value) => `<td>${escape(String(value))}</td>`).join("")}</tr>`).join("");
+    const workbook = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif}table{border-collapse:collapse;margin-bottom:24px}th,td{border:1px solid #d1d5db;padding:8px;text-align:left}th{background:#eaf7ee;color:#087a32}</style></head><body><h2>Finance Report</h2><table>${summary}</table><h3>Payment Schedule</h3><table><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table></body></html>`;
+    const url = URL.createObjectURL(new Blob([workbook], { type: "application/vnd.ms-excel;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `finance-report-${new Date().toISOString().slice(0, 10)}.xls`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast({ variant: "success", title: "Excel exported", description: `${filteredInstallments.length} payment records exported to Excel.` });
+  }
+
   return (
     <div className="flex flex-col gap-3 pb-8">
       <div className="flex justify-end gap-2 px-4 pt-3 sm:px-6">
-        <Button variant="secondary" onClick={() => toast({ variant: "success", title: "Report exported" })}><Download size={15} /> Export Report</Button>
+        <Button variant="secondary" onClick={exportFinanceReport}><Download size={15} /> Export Report</Button>
         <Button onClick={() => selectedInstallment && openRecordPayment(selectedInstallment)} disabled={!selectedInstallment}><Plus size={15} /> Record Payment</Button>
       </div>
 

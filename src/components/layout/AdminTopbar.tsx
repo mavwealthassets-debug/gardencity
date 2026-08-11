@@ -10,6 +10,8 @@ import { useLocation } from "react-router-dom";
 
 export function AdminTopbar({ onMenuClick }: { onMenuClick: () => void }) {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
   const { user, logout } = useSession();
   const { pathname } = useLocation();
   const financePage = pathname === "/admin/finance";
@@ -33,7 +35,21 @@ export function AdminTopbar({ onMenuClick }: { onMenuClick: () => void }) {
         <ProjectSelector />
         <button type="button" onClick={() => setSearchOpen(true)} aria-label="Global search" className="flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 hover:bg-surface-muted hover:text-neutral-800"><Search size={18} /></button>
         <NotificationPanel notifications={userNotifications} onMarkRead={markNotificationRead} onMarkAllRead={() => markAllNotificationsRead(user.id)} />
-        <button type="button" aria-label="Calendar" className="hidden h-9 w-9 items-center justify-center rounded-full text-neutral-500 hover:bg-surface-muted hover:text-neutral-800 sm:flex"><CalendarDays size={18} /></button>
+        <div className="relative hidden sm:block">
+          <button type="button" onClick={() => setCalendarOpen((value) => !value)} aria-label="Calendar" aria-expanded={calendarOpen} className="flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 hover:bg-surface-muted hover:text-neutral-800"><CalendarDays size={18} /></button>
+          {calendarOpen && (
+            <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-72 rounded-xl border border-border bg-white p-4 shadow-popover">
+              <p className="text-sm font-semibold text-neutral-900">Calendar</p>
+              <p className="mt-1 text-xs text-neutral-500">Choose a date to view.</p>
+              <input type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} className="mt-3 h-10 w-full rounded-lg border border-border px-3 text-sm text-neutral-800" />
+              <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-center text-sm font-medium text-primary">{new Date(`${selectedDate}T00:00:00`).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => setSelectedDate(new Date().toISOString().slice(0, 10))} className="h-9 rounded-lg border border-border text-xs font-semibold text-neutral-700 hover:bg-surface-muted">Today</button>
+                <button type="button" onClick={() => setCalendarOpen(false)} className="h-9 rounded-lg bg-primary text-xs font-semibold text-white">Done</button>
+              </div>
+            </div>
+          )}
+        </div>
         <span className="mx-1 hidden h-6 w-px bg-border sm:block" />
         <UserMenu user={user} onLogout={logout} settingsPath="/admin/settings" />
       </div>

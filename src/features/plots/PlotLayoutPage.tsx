@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { MetricCard } from "@/components/common/MetricCard";
 import { Select } from "@/components/common/Field";
 import { Button } from "@/components/common/Button";
+import { Modal } from "@/components/common/Modal";
 import { cn } from "@/lib/utils";
 import { useAppData } from "@/app/store";
 import { useToast } from "@/app/toast";
@@ -39,6 +40,7 @@ export default function PlotLayoutPage() {
   const [activePlot, setActivePlot] = useState<Plot | null>(null);
   const [showMasterPlan, setShowMasterPlan] = useState(false);
   const [masterPlanZoom, setMasterPlanZoom] = useState(1);
+  const [showFilteredResults, setShowFilteredResults] = useState(false);
   const isDesktopPanel = useMediaQuery("(min-width: 1280px)");
 
   const stats = useMemo(() => ({
@@ -65,6 +67,24 @@ export default function PlotLayoutPage() {
     setParkFilter("all"); setBlockFilter("all"); setStatusFilter("all");
   }
 
+  async function downloadLayout() {
+    try {
+      const response = await fetch("/garden-city-master-plan.png");
+      if (!response.ok) throw new Error("Unable to load layout");
+      const url = URL.createObjectURL(await response.blob());
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `garden-city-layout-${new Date().toISOString().slice(0, 10)}.png`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast({ variant: "success", title: "Layout downloaded", description: "The Garden City master plan has been saved to your device." });
+    } catch {
+      toast({ variant: "error", title: "Download failed", description: "The layout could not be downloaded. Please try again." });
+    }
+  }
+
   return (
     <div className="flex flex-col gap-5 pb-10">
       <PageHeader title="Plot Layout" description="Interactive master plan of Garden City Naugaon township." />
@@ -84,7 +104,7 @@ export default function PlotLayoutPage() {
           <Select value={blockFilter} onChange={(e) => setBlockFilter(e.target.value)} className="w-auto min-w-[7rem]" aria-label="Block"><option value="all">All Blocks</option>{blocks.map((b) => <option key={b} value={b}>Block {b}</option>)}</Select>
           <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-auto min-w-[7rem]" aria-label="Status"><option value="all">All Status</option><option value="available">Available</option><option value="booked">Booked</option><option value="sold">Sold</option><option value="reserved">Reserved</option></Select>
           <Button variant="ghost" onClick={resetFilters}><RotateCcw size={15} /> Reset</Button>
-          <Button variant="secondary" className="ml-auto" onClick={() => toast({ variant: "info", title: `${filtered.length} plots match`, description: "Filters applied to the layout below." })}><SlidersHorizontal size={15} /> {filtered.length} Filtered</Button>
+          <Button variant="secondary" className="ml-auto" onClick={() => setShowFilteredResults(true)}><SlidersHorizontal size={15} /> {filtered.length} Filtered</Button>
         </div>
 
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_320px]">
@@ -123,7 +143,7 @@ export default function PlotLayoutPage() {
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
               <ul className="flex flex-wrap gap-4">{LEGEND.map((l) => <li key={l.status} className="flex items-center gap-1.5 text-xs text-neutral-600"><span className={cn("h-2.5 w-2.5 rounded-full border", STATUS_CELL[l.status])} />{l.label}</li>)}</ul>
-              <Button variant="secondary" size="sm" onClick={() => toast({ variant: "success", title: "Layout download started", description: "garden-city-naugaon-master-plan.pdf" })}><Download size={14} /> Download Layout</Button>
+              <Button variant="secondary" size="sm" onClick={downloadLayout}><Download size={14} /> Download Layout</Button>
             </div>
           </div>
 
@@ -135,6 +155,29 @@ export default function PlotLayoutPage() {
         </div>
       </div>
       {!isDesktopPanel && <PlotDetailDrawer plot={activePlot} onClose={() => setActivePlot(null)} />}
+      <Modal
+        open={showFilteredResults}
+        onClose={() => setShowFilteredResults(false)}
+        title={`${filtered.length} Filtered Plots`}
+        description="Plots matching the currently selected layout filters."
+        footer={<Button variant="secondary" onClick={() => setShowFilteredResults(false)}>Close</Button>}
+      >
+        <div className="max-h-[55vh] overflow-y-auto rounded-xl border border-border">
+          {filtered.length ? filtered.map((plot) => (
+            <button
+              key={plot.id}
+              type="button"
+              onClick={() => { setActivePlot(plot); setShowFilteredResults(false); }}
+              className="grid w-full grid-cols-[1fr_.8fr_.8fr_1fr] items-center gap-3 border-b border-border px-3 py-2.5 text-left text-sm last:border-b-0 hover:bg-surface-muted"
+            >
+              <span className="font-semibold text-neutral-900">{plot.plotNo}</span>
+              <span>Block {plot.block}</span>
+              <span>{plot.areaSqYd} sq yd</span>
+              <span className={cn("w-fit rounded-full border px-2 py-0.5 text-xs font-medium", STATUS_CELL[plot.status])}>{plot.status[0].toUpperCase() + plot.status.slice(1)}</span>
+            </button>
+          )) : <p className="p-8 text-center text-sm text-neutral-500">No plots match the selected filters.</p>}
+        </div>
+      </Modal>
       {showMasterPlan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/75 p-4" role="dialog" aria-modal="true" aria-label="Garden City actual master plan">
           <button type="button" onClick={() => setShowMasterPlan(false)} className="absolute inset-0" aria-label="Close master plan" />

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Building2, Grid3x3, Landmark, Layers, MapPin, ShieldCheck, Sparkles, Tag, CalendarCheck, CheckCircle2, IndianRupee, Wallet, ChevronRight, ReceiptText, CalendarDays, DoorOpen, Route, TentTree, Lightbulb, Blocks, House, Cable, Trees, TreePine, Train, Store, Hospital } from "lucide-react";
 import { MetricCard } from "@/components/common/MetricCard";
@@ -15,6 +15,11 @@ export default function ProjectOverviewPage() {
   const navigate = useNavigate();
   const { plots } = useAppData();
   const project = gardenCityProject;
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [startDate, setStartDate] = useState("2026-03-01");
+  const [endDate, setEndDate] = useState("2026-08-31");
+  const dateRangeIsValid = startDate <= endDate;
+  const formatRangeDate = (value: string) => new Date(`${value}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
   const stats = useMemo(() => {
     const available = plots.filter((p) => p.status === "available").length;
@@ -38,9 +43,22 @@ export default function ProjectOverviewPage() {
       <div className="flex flex-col gap-3 px-4 pt-2 sm:px-6">
         <div className="flex h-10 items-center justify-between gap-3">
           <p className="text-base font-semibold text-neutral-900"><span className="text-brand-700">Projects</span> <span className="px-1 text-brand-700">/</span> Township Overview</p>
-          <button type="button" className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-xs font-medium text-neutral-700 shadow-card">
-            <CalendarDays size={14} className="text-neutral-500" /> Mar 1 – Aug 31, 2026
-          </button>
+          <div className="relative">
+            <button type="button" onClick={() => setShowDatePicker((value) => !value)} aria-expanded={showDatePicker} className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-xs font-medium text-neutral-700 shadow-card hover:bg-surface-muted">
+              <CalendarDays size={14} className="text-neutral-500" /> {formatRangeDate(startDate)} – {formatRangeDate(endDate)}
+            </button>
+            {showDatePicker && (
+              <div className="absolute right-0 top-[calc(100%+0.5rem)] z-40 w-72 rounded-xl border border-border bg-white p-4 shadow-popover">
+                <p className="mb-3 text-sm font-semibold text-neutral-900">Select reporting period</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="flex flex-col gap-1 text-xs font-medium text-neutral-600">From<input type="date" value={startDate} max={endDate} onChange={(event) => setStartDate(event.target.value)} className="h-9 rounded-lg border border-border px-2 text-xs text-neutral-800" /></label>
+                  <label className="flex flex-col gap-1 text-xs font-medium text-neutral-600">To<input type="date" value={endDate} min={startDate} onChange={(event) => setEndDate(event.target.value)} className="h-9 rounded-lg border border-border px-2 text-xs text-neutral-800" /></label>
+                </div>
+                {!dateRangeIsValid && <p className="mt-2 text-xs text-red-600">End date must be after the start date.</p>}
+                <button type="button" disabled={!dateRangeIsValid} onClick={() => setShowDatePicker(false)} className="mt-3 h-9 w-full rounded-lg bg-primary px-3 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Apply Date Range</button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="relative h-[198px] overflow-hidden rounded-xl border border-border">

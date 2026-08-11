@@ -6,6 +6,7 @@ import { Card } from "@/components/common/Card";
 import { SearchInput } from "@/components/common/SearchInput";
 import { Select } from "@/components/common/Field";
 import { Button } from "@/components/common/Button";
+import { Modal } from "@/components/common/Modal";
 import { TableContainer, Table, THead, TBody, TR, TH, TD } from "@/components/common/Table";
 import { StatusBadge, plotStatusTone } from "@/components/common/StatusBadge";
 import { Pagination } from "@/components/common/Pagination";
@@ -15,14 +16,14 @@ import { useToast } from "@/app/toast";
 import { formatINR, formatDate } from "@/lib/format";
 import { getBuyerById } from "@/data/buyers";
 import { gardenCityProject } from "@/data/project";
-import type { Plot } from "@/types";
+import type { Plot, PlotStatus } from "@/types";
 import { PlotDetailDrawer } from "./PlotDetailDrawer";
 
 const PAGE_SIZE = 10;
 
 export default function PlotInventoryPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { plots } = useAppData();
+  const { plots, dispatch } = useAppData();
   const { toast } = useToast();
   const [query, setQuery] = useState("");
   const requestedStatus = searchParams.get("status");
@@ -33,6 +34,11 @@ export default function PlotInventoryPage() {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [activePlot, setActivePlot] = useState<Plot | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [showBulkUpdate, setShowBulkUpdate] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState<PlotStatus>("available");
 
   const stats = useMemo(() => ({
     total: plots.length,
@@ -52,18 +58,43 @@ export default function PlotInventoryPage() {
       if (facingFilter !== "all" && p.facing !== facingFilter) return false;
       if (typeFilter !== "all" && (typeFilter === "corner") !== p.isCorner) return false;
       if (sizeFilter !== "all" && p.category !== sizeFilter) return false;
+      if (minPrice && p.finalPrice < Number(minPrice)) return false;
+      if (maxPrice && p.finalPrice > Number(maxPrice)) return false;
       const buyer = p.buyerId ? getBuyerById(p.buyerId)?.name.toLowerCase() : "";
       return !q || p.plotNo.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || buyer?.includes(q);
     });
-  }, [plots, query, statusFilter, typeFilter, facingFilter, sizeFilter]);
+  }, [plots, query, statusFilter, typeFilter, facingFilter, sizeFilter, minPrice, maxPrice]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const applyStatusFilter = (status: string) => {
     setPage(1);
     setSearchParams(status === "all" ? {} : { status });
   };
-  const reset = () => { setQuery(""); applyStatusFilter("all"); setTypeFilter("all"); setFacingFilter("all"); setSizeFilter("all"); setPage(1); };
+  const reset = () => { setQuery(""); applyStatusFilter("all"); setTypeFilter("all"); setFacingFilter("all"); setSizeFilter("all"); setMinPrice(""); setMaxPrice(""); setPage(1); };
   const toggle = (id: string) => setSelected((old) => { const next = new Set(old); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+
+  function exportPlots() {
+    const headers = ["Plot No.", "Size (sq yd)", "Facing", "Type", "Status", "Buyer", "Base Price", "Final Price", "Paid Amount", "Category"];
+    const rows = filtered.map((plot) => [plot.plotNo, plot.areaSqYd, plot.facing, plot.isCorner ? "Corner" : "Residential", plot.status, plot.buyerId ? getBuyerById(plot.buyerId)?.name ?? "" : "", plot.basePrice, plot.finalPrice, plot.paidAmount ?? 0, plot.category]);
+    const escape = (value: string) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const workbook = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>table{border-collapse:collapse;font-family:Arial,sans-serif}th,td{border:1px solid #d1d5db;padding:8px;text-align:left}th{background:#eaf7ee;color:#087a32}</style></head><body><h2>Plot Inventory</h2><table><thead><tr>${headers.map((header) => `<th>${escape(header)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((value) => `<td>${escape(String(value))}</td>`).join("")}</tr>`).join("")}</tbody></table></body></html>`;
+    const url = URL.createObjectURL(new Blob([workbook], { type: "application/vnd.ms-excel;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `plot-inventory-${new Date().toISOString().slice(0, 10)}.xls`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast({ variant: "success", title: "Excel exported", description: `${filtered.length} filtered plots exported.` });
+  }
+
+  function applyBulkUpdate() {
+    selected.forEach((plotId) => dispatch({ type: "SET_PLOT_STATUS", plotId, status: bulkStatus }));
+    toast({ variant: "success", title: "Plots updated", description: `${selected.size} plots changed to ${bulkStatus}.` });
+    setSelected(new Set());
+    setShowBulkUpdate(false);
+  }
 
   return (
     <div className="flex flex-col gap-3 px-4 py-3 sm:px-6">
@@ -71,8 +102,8 @@ export default function PlotInventoryPage() {
         <div><h1 className="text-lg font-bold text-neutral-900">Plot Inventory</h1><p className="text-xs text-neutral-500">Manage and track all plots in your project</p></div>
         <div className="flex gap-2">
           <Button size="sm" onClick={() => toast({ variant: "success", title: "Add Plot", description: "Plot creation form would open here." })}><Plus size={14} /> Add Plot</Button>
-          <Button variant="secondary" size="sm" onClick={() => toast({ variant: "info", title: `Bulk update on ${selected.size} plots`, description: "Bulk actions are simulated." })}><Layers size={14} /> Bulk Update</Button>
-          <Button variant="secondary" size="sm" onClick={() => toast({ variant: "success", title: "Export started", description: `Preparing CSV for ${filtered.length} plots.` })}><Download size={14} /> Export</Button>
+          <Button variant="secondary" size="sm" onClick={() => setShowBulkUpdate(true)}><Layers size={14} /> Bulk Update</Button>
+          <Button variant="secondary" size="sm" onClick={exportPlots}><Download size={14} /> Export</Button>
         </div>
       </div>
 
@@ -91,9 +122,15 @@ export default function PlotInventoryPage() {
         <Select value={facingFilter} onChange={(e) => { setFacingFilter(e.target.value); setPage(1); }} className="h-9 text-xs"><option value="all">All Facing</option>{["North", "South", "East", "West", "North-East", "North-West", "South-East", "South-West"].map((f) => <option key={f}>{f}</option>)}</Select>
         <Select value={sizeFilter} onChange={(e) => { setSizeFilter(e.target.value); setPage(1); }} className="h-9 text-xs"><option value="all">All Sizes</option>{gardenCityProject.plotCategories.map((c) => <option key={c.label}>{c.label}</option>)}</Select>
         <SearchInput value={query} onChange={(v) => { setQuery(v); setPage(1); }} placeholder="Search by Plot No., Buyer or Type..." className="h-9 text-xs" />
-        <Button variant="secondary" size="sm"><SlidersHorizontal size={14} /> Filters</Button>
+        <Button variant="secondary" size="sm" onClick={() => setShowFilters((value) => !value)}><SlidersHorizontal size={14} /> Filters</Button>
         <Button variant="ghost" size="sm" onClick={reset}>Reset</Button>
       </div>
+
+      {showFilters && <Card className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
+        <label className="flex flex-col gap-1 text-xs font-medium text-neutral-700">Minimum final price<input type="number" min="0" value={minPrice} onChange={(event) => { setMinPrice(event.target.value); setPage(1); }} placeholder="e.g. 3000000" className="h-9 rounded-lg border border-border px-3 font-normal" /></label>
+        <label className="flex flex-col gap-1 text-xs font-medium text-neutral-700">Maximum final price<input type="number" min="0" value={maxPrice} onChange={(event) => { setMaxPrice(event.target.value); setPage(1); }} placeholder="e.g. 8000000" className="h-9 rounded-lg border border-border px-3 font-normal" /></label>
+        <Button variant="secondary" size="sm" onClick={() => { setMinPrice(""); setMaxPrice(""); }}>Clear price filters</Button>
+      </Card>}
 
       <TableContainer>
         <Table className="min-w-[1120px] text-xs">
@@ -103,6 +140,17 @@ export default function PlotInventoryPage() {
         <Pagination page={page} totalPages={totalPages} onPageChange={setPage} totalItems={filtered.length} pageSize={PAGE_SIZE} />
       </TableContainer>
       <PlotDetailDrawer plot={activePlot} onClose={() => setActivePlot(null)} />
+      <Modal
+        open={showBulkUpdate}
+        onClose={() => setShowBulkUpdate(false)}
+        title="Bulk Update Plots"
+        description={selected.size ? `Update the status of ${selected.size} selected plots.` : "Select plots from the inventory table before applying an update."}
+        footer={<><Button variant="secondary" onClick={() => setShowBulkUpdate(false)}>Cancel</Button><Button onClick={applyBulkUpdate} disabled={!selected.size}>Update {selected.size || ""} Plots</Button></>}
+      >
+        <Select label="New status" value={bulkStatus} onChange={(event) => setBulkStatus(event.target.value as PlotStatus)}>
+          <option value="available">Available</option><option value="booked">Booked</option><option value="sold">Sold</option><option value="reserved">Reserved</option>
+        </Select>
+      </Modal>
     </div>
   );
 }

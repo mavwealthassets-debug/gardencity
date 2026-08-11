@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Clock, ShieldCheck, XCircle, CalendarClock, Upload, Eye, Check, Send, X as XIcon } from "lucide-react";
 import { MetricCard } from "@/components/common/MetricCard";
 import { SearchInput } from "@/components/common/SearchInput";
-import { Select, Textarea, Select as FormSelect } from "@/components/common/Field";
+import { Textarea, Select as FormSelect } from "@/components/common/Field";
 import { Button } from "@/components/common/Button";
 import { Tabs } from "@/components/common/Tabs";
 import { TableContainer, Table, THead, TBody, TR, TH, TD } from "@/components/common/Table";
@@ -39,6 +39,9 @@ export default function DocumentsAdminPage() {
   const [rejectReason, setRejectReason] = useState("");
   const [showReject, setShowReject] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadCategory, setUploadCategory] = useState<DocumentCategory>("Property");
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   const stats = useMemo(
@@ -97,25 +100,49 @@ export default function DocumentsAdminPage() {
     toast({ variant: "success", title: "Resubmission request sent", description: `${active.name}: the buyer has been notified to upload a corrected document.` });
     setActive(null);
   }
+  function selectUploadFile(file?: File) {
+    if (!file) return;
+    const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+    if (!allowedTypes.includes(file.type)) {
+      toast({ variant: "error", title: "Unsupported file", description: "Select a PDF, JPG, or PNG file." });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ variant: "error", title: "File is too large", description: "The maximum upload size is 10MB." });
+      return;
+    }
+    setUploadFile(file);
+  }
+
+  function closeUpload() {
+    setShowUpload(false);
+    setUploadFile(null);
+    setUploadCategory("Property");
+  }
+
   function handleUpload() {
+    if (!uploadFile) {
+      toast({ variant: "error", title: "Select a document", description: "Click the upload area and choose a file first." });
+      return;
+    }
     const doc: DocumentItem = {
       id: `doc-new-${Date.now()}`,
       buyerId: "buyer-rahul",
       plotId: "GCN-047",
-      name: "New Uploaded Document",
-      category: "Property",
+      name: uploadFile.name,
+      category: uploadCategory,
       status: "Pending",
       uploadedBy: "Admin User",
       uploadedByRole: "Administrator",
       uploadDate: new Date().toISOString().slice(0, 10),
-      fileSizeKb: 1200,
-      fileType: "PDF",
+      fileSizeKb: Math.max(1, Math.round(uploadFile.size / 1024)),
+      fileType: uploadFile.type === "application/pdf" ? "PDF" : uploadFile.type === "image/png" ? "PNG" : "JPG",
       version: 1,
       history: [{ version: 1, date: new Date().toISOString().slice(0, 10), action: "Uploaded", by: "Admin User" }],
     };
     uploadDocument(doc);
     toast({ variant: "success", title: "Document uploaded", description: "The document has been added and is pending verification." });
-    setShowUpload(false);
+    closeUpload();
   }
 
   function filterFromMetric(status: string) {
@@ -141,14 +168,29 @@ export default function DocumentsAdminPage() {
 
         <div className="flex items-center justify-end gap-2">
           <SearchInput value={query} onChange={(value) => { setQuery(value); setPage(1); }} placeholder="Search by buyer, plot or document..." containerClassName="mr-auto w-64" className="h-9 text-xs" />
-          <Select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} className="h-9 w-36 text-xs" aria-label="Filter by status">
-            <option value="all">All Statuses</option>
-            <option value="Verified">Verified</option>
-            <option value="Pending">Pending</option>
-            <option value="Rejected">Rejected</option>
-            <option value="Resubmission Required">Resubmission Required</option>
-          </Select>
-          <Button variant="secondary" size="sm">Filters</Button>
+          <div className="relative">
+            <Button variant="secondary" size="sm" onClick={() => setShowFilters((value) => !value)} aria-expanded={showFilters}>Filters</Button>
+            {showFilters && (
+              <div className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-56 overflow-hidden rounded-xl border border-border bg-white py-1.5 shadow-popover">
+                {[
+                  ["all", "All Statuses"],
+                  ["Verified", "Verified"],
+                  ["Pending", "Pending"],
+                  ["Rejected", "Rejected"],
+                  ["Resubmission Required", "Resubmission Required"],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => { setStatusFilter(value); setPage(1); setShowFilters(false); }}
+                    className={`flex w-full items-center px-3 py-2 text-left text-sm hover:bg-surface-muted ${statusFilter === value ? "bg-emerald-50 font-semibold text-primary" : "text-neutral-700"}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <Button size="sm" onClick={() => setShowUpload(true)}><Upload size={14} /> Upload Document</Button>
         </div>
 
@@ -283,22 +325,28 @@ export default function DocumentsAdminPage() {
 
       <Modal
         open={showUpload}
-        onClose={() => setShowUpload(false)}
+        onClose={closeUpload}
         title="Upload Document"
         description="Securely upload a document on behalf of a buyer. Supported formats: PDF, JPG, PNG (Max 10MB)."
         footer={
           <>
-            <Button variant="secondary" onClick={() => setShowUpload(false)}>Cancel</Button>
-            <Button onClick={handleUpload}><Upload size={15} /> Upload</Button>
+            <Button variant="secondary" onClick={closeUpload}>Cancel</Button>
+            <Button onClick={handleUpload} disabled={!uploadFile}><Upload size={15} /> Upload</Button>
           </>
         }
       >
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border-strong bg-surface-subtle p-8 text-center">
-            <Upload size={22} className="text-neutral-400" />
-            <p className="text-sm text-neutral-500">Drag and drop a file, or click to browse</p>
-          </div>
-          <FormSelect label="Category" defaultValue="Property">
+          <label
+            className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border-strong bg-surface-subtle p-8 text-center transition hover:border-primary hover:bg-emerald-50/40 focus-within:ring-2 focus-within:ring-primary"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => { event.preventDefault(); selectUploadFile(event.dataTransfer.files[0]); }}
+          >
+            <input className="sr-only" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={(event) => selectUploadFile(event.target.files?.[0])} />
+            <Upload size={22} className={uploadFile ? "text-primary" : "text-neutral-400"} />
+            <p className="text-sm font-medium text-neutral-700">{uploadFile?.name ?? "Drag and drop a file, or click to browse"}</p>
+            {uploadFile && <p className="text-xs text-neutral-500">{(uploadFile.size / 1024 / 1024).toFixed(2)} MB · Click to replace</p>}
+          </label>
+          <FormSelect label="Category" value={uploadCategory} onChange={(event) => setUploadCategory(event.target.value as DocumentCategory)}>
             {(["KYC", "Financial", "Property", "Legal"] as DocumentCategory[]).map((c) => <option key={c} value={c}>{c}</option>)}
           </FormSelect>
         </div>

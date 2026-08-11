@@ -40,6 +40,8 @@ export default function SupportAdminPage() {
   const [tab, setTab] = useState("all");
   const [query, setQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [showFilters, setShowFilters] = useState(false);
   const [active, setActive] = useState<SupportTicket | null>(null);
   const [note, setNote] = useState("");
   const [page, setPage] = useState(1);
@@ -61,13 +63,14 @@ export default function SupportAdminPage() {
     return tickets
       .filter((t) => tab === "all" || t.status === tab)
       .filter((t) => priorityFilter === "all" || t.priority === priorityFilter)
+      .filter((t) => categoryFilter === "all" || t.category === categoryFilter)
       .filter((t) => {
         if (!q) return true;
         const buyer = getBuyerById(t.buyerId)?.name.toLowerCase() ?? "";
         return t.subject.toLowerCase().includes(q) || buyer.includes(q) || t.id.toLowerCase().includes(q);
       })
       .sort((a, b) => new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime());
-  }, [tickets, tab, priorityFilter, query]);
+  }, [tickets, tab, priorityFilter, categoryFilter, query]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pagedTickets = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
@@ -114,14 +117,34 @@ export default function SupportAdminPage() {
     setActive((prev) => (prev ? { ...prev, assignedTo: agent } : prev));
   }
 
+  function exportTickets() {
+    const headers = ["Ticket ID", "Buyer", "Plot", "Category", "Subject", "Priority", "Assigned To", "Created", "Status", "SLA"];
+    const rows = filtered.map((ticket) => [ticket.id, getBuyerById(ticket.buyerId)?.name ?? "Buyer", ticket.plotId ?? "", ticket.category, ticket.subject, ticket.priority, ticket.assignedTo, ticket.createdOn, ticket.status, ticket.slaState]);
+    const escape = (value: string) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const headerCells = headers.map((header) => `<th>${escape(header)}</th>`).join("");
+    const bodyRows = rows
+      .map((row) => `<tr>${row.map((value) => `<td>${escape(String(value))}</td>`).join("")}</tr>`)
+      .join("");
+    const workbook = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>table{border-collapse:collapse;font-family:Arial,sans-serif}th,td{border:1px solid #d1d5db;padding:8px;text-align:left}th{background:#eaf7ee;color:#087a32}h2{font-family:Arial,sans-serif}</style></head><body><h2>Support Tickets</h2><table><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table></body></html>`;
+    const url = URL.createObjectURL(new Blob([workbook], { type: "application/vnd.ms-excel;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `support-tickets-${new Date().toISOString().slice(0, 10)}.xls`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast({ variant: "success", title: "Excel exported", description: `${filtered.length} filtered tickets exported to Excel.` });
+  }
+
   return (
     <div className="flex flex-col gap-5 pb-10">
       <PageHeader
         title="Support"
         description="Manage and resolve post-sale support tickets from buyers."
         actions={<>
-          <Button variant="secondary" onClick={() => toast({ variant: "success", title: "Tickets exported" })}><Download size={15} /> Export</Button>
-          <Button variant="secondary">Filters</Button>
+          <Button variant="secondary" onClick={exportTickets}><Download size={15} /> Export</Button>
+          <Button variant={showFilters ? "primary" : "secondary"} onClick={() => setShowFilters((visible) => !visible)}>Filters{(priorityFilter !== "all" || categoryFilter !== "all" || tab !== "all") ? " •" : ""}</Button>
           <Button onClick={() => toast({ variant: "success", title: "New ticket created" })}><Plus size={15} /> New Ticket</Button>
         </>}
       />
@@ -140,16 +163,17 @@ export default function SupportAdminPage() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Tabs tabs={STATUS_TABS.map((t) => ({ ...t, count: counts[t.value as keyof typeof counts] }))} value={tab} onChange={(value) => { setTab(value); setPage(1); }} className="border-b-0" />
             </div>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1.5fr_1fr_1fr_1fr]">
-              <SearchInput value={query} onChange={(value) => { setQuery(value); setPage(1); }} placeholder="Search tickets by ID, buyer, subject..." />
-              <Select defaultValue="all" aria-label="Filter by category"><option value="all">All Categories</option><option>Infrastructure</option><option>Payments</option><option>Registration</option><option>Documentation</option><option>Site Visit</option></Select>
+            <div className={showFilters ? "grid grid-cols-1 gap-2 sm:grid-cols-[1.5fr_1fr_1fr_1fr_auto]" : "grid grid-cols-1 gap-2"}>
+              <SearchInput value={query} onChange={(value) => { setQuery(value); setPage(1); }} placeholder="Search tickets by ID, buyer, subject..." containerClassName={showFilters ? undefined : "sm:max-w-xl"} />
+              {showFilters && <><Select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }} aria-label="Filter by category"><option value="all">All Categories</option><option value="Infrastructure">Infrastructure</option><option value="Payments">Payments</option><option value="Registration">Registration</option><option value="Documentation">Documentation</option><option value="Site Visit">Site Visit</option><option value="General Query">General Query</option></Select>
               <Select value={priorityFilter} onChange={(e) => { setPriorityFilter(e.target.value); setPage(1); }} aria-label="Filter by priority">
                 <option value="all">All Priorities</option>
                 <option value="High">High</option>
                 <option value="Medium">Medium</option>
                 <option value="Low">Low</option>
               </Select>
-              <Select defaultValue="all" aria-label="Filter by status"><option value="all">All Statuses</option><option>Open</option><option>In Progress</option><option>Resolved</option><option>Closed</option></Select>
+              <Select value={tab} onChange={(e) => { setTab(e.target.value); setPage(1); }} aria-label="Filter by status"><option value="all">All Statuses</option><option value="Open">Open</option><option value="In Progress">In Progress</option><option value="Resolved">Resolved</option><option value="Closed">Closed</option><option value="On Hold">On Hold</option></Select>
+              <Button variant="ghost" size="sm" onClick={() => { setCategoryFilter("all"); setPriorityFilter("all"); setTab("all"); setQuery(""); setPage(1); }}>Reset</Button></>}
             </div>
 
             <TableContainer className="shadow-none text-xs [&_th]:py-2 [&_td]:py-2">

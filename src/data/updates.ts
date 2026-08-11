@@ -73,7 +73,7 @@ export const projectUpdates: ProjectUpdate[] = [
     description: "The grand entrance gate and township boundary wall construction has been fully completed.",
     category: "Construction",
     date: "2026-05-10",
-    images: ["https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop"],
+    images: ["/garden-city-entrance-wide.webp"],
   },
   {
     id: "upd-9",

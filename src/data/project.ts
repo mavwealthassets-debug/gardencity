@@ -6,7 +6,7 @@ export const gardenCityProject: Project = {
   tagline: "Premium Residential Township",
   description:
     "A premium 11-acre residential township in the heart of Naugaon, designed for modern living with green spaces, wide roads, and world-class amenities.",
-  heroImage: "/sales-office-hero.png",
+  heroImage: "/garden-city-entrance-wide.webp",
   townshipSizeAcres: 11,
   totalPlots: 101,
   location: "Naugaon, District Nuh, Haryana - 122105",
